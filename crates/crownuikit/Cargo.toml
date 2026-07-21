@@ -1,0 +1,13 @@
+[package]
+name = "crownuikit"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+blinc_icons = "0.5.1"
+winit = "0.30.13"
+xilem = "0.4.0"
+
+[profile.dev]
+# See https://doc.rust-lang.org/cargo/reference/profiles.html#split-debuginfo
+split-debuginfo = "unpacked"
