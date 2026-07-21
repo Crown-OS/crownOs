@@ -12,7 +12,7 @@ use xilem::masonry::core::{
     PaintCtx, PointerButton, PointerButtonEvent, PointerEvent, PropertiesMut, PropertiesRef,
     RegisterCtx, TextEvent, Update, UpdateCtx, Widget, WidgetMut, WidgetPod,
 };
-use xilem::masonry::kurbo::{Circle, Point, Rect, Size};
+use xilem::masonry::kurbo::{Point, RoundedRect, Size};
 use xilem::masonry::peniko::color::palette;
 use xilem::masonry::peniko::Gradient;
 use xilem::masonry::util::fill;
@@ -21,62 +21,55 @@ use xilem::masonry::widgets::Label;
 use xilem::{Color, Pod, ViewCtx};
 
 use crate::animation::{Clock, Spring};
+use crate::config::theme;
+use crate::util::{inflated_pill, inner_ring, lerp_color, outer_glow};
 
 // --- MARK: Metrics ---
-const TRACK_WIDTH: f64 = 44.0;
+const TRACK_WIDTH: f64 = 48.0;
 const TRACK_HEIGHT: f64 = 24.0;
-const TRACK_RADIUS: f64 = TRACK_HEIGHT / 2.0;
-const KNOB_RADIUS: f64 = 10.0;
+/// Total horizontal footprint of the knob (including padding on both sides).
+const KNOB_WIDTH: f64 = 32.0;
+/// Padding inside the track around every side of the knob.
 const KNOB_PADDING: f64 = 2.0;
 const LABEL_GAP: f64 = 10.0;
 /// How far past the knob the soft glow extends. Bigger = softer edge.
 const KNOB_GLOW_RADIUS: f64 = 4.0;
+/// Elastic stretch factor. Multiplied by |spring velocity| to get a
+/// dimensionless "stretch fraction" that is then scaled by knob width — so
+/// with `KNOB_MAX_STRETCH = 0.4` the knob can briefly grow up to 40% wider
+/// at peak velocity.
+const KNOB_STRETCH_PER_VELOCITY: f64 = 0.15;
+const KNOB_MAX_STRETCH: f64 = 0.1;
+
+// Derived — the actual painted knob is inset from the track by KNOB_PADDING
+// on every side.
+const KNOB_HEIGHT: f64 = TRACK_HEIGHT - 2.0 * KNOB_PADDING;
+const BASE_KNOB_WIDTH: f64 = KNOB_WIDTH - 2.0 * KNOB_PADDING;
 
 // --- MARK: Palette ---
-const OFF_COLOR: Color = Color::from_rgb8(0xE5, 0xE5, 0xEA);
-const ON_COLOR: Color = Color::from_rgb8(0x7F, 0x5A, 0xF8);
+// Track uses a subtle vertical gradient. Off and on states both interpolate
+// between two stops; the top→bottom endpoints for each state come from the
+// global theme so all crownuikit widgets stay in visual sync.
 const KNOB_COLOR: Color = Color::from_rgb8(0xFF, 0xFF, 0xFF);
 
-/// Soft glow surrounding the knob. Painted as a radial gradient that fades
-/// from a subtle dark tint at the knob's rim to fully transparent past
-/// `KNOB_GLOW_RADIUS`, softening the boundary against the track color and
-/// hiding any pixelation along the curve.
-fn knob_glow(center: Point) -> Gradient {
-    let outer = (KNOB_RADIUS + KNOB_GLOW_RADIUS) as f32;
-    // Fraction of the gradient where the knob body ends.
-    let knob_edge = KNOB_RADIUS as f32 / outer;
-    Gradient::new_radial(center, outer).with_stops([
-        (0.0_f32, palette::css::BLACK.with_alpha(0.0)),
-        (knob_edge - 0.02, palette::css::BLACK.with_alpha(0.14)),
-        (knob_edge, palette::css::BLACK.with_alpha(0.08)),
-        (1.0_f32, palette::css::BLACK.with_alpha(0.0)),
-    ])
+/// Soft glow surrounding the knob — hides pixelation along the curve and
+/// simulates a symmetric drop shadow. `radius` is the knob's outer radius
+/// (half of its shortest dimension) at paint time.
+fn knob_glow(center: Point, radius: f64) -> xilem::masonry::peniko::Gradient {
+    outer_glow(
+        center,
+        radius as f32,
+        (radius + KNOB_GLOW_RADIUS) as f32,
+        palette::css::BLACK,
+        0.14,
+        0.08,
+    )
 }
 
-/// Straight linear interpolation between two sRGB colors in premultiplied
-/// component space. Good enough for a UI accent transition; avoids pulling in
-/// the full color-space machinery for what is a 1-D mix.
-fn lerp_color(a: Color, b: Color, t: f64) -> Color {
-    let t = t.clamp(0.0, 1.0) as f32;
-    let [ar, ag, ab, aa] = a.components;
-    let [br, bg, bb, ba] = b.components;
-    Color::new([
-        ar + (br - ar) * t,
-        ag + (bg - ag) * t,
-        ab + (bb - ab) * t,
-        aa + (ba - aa) * t,
-    ])
-}
-
-/// A subtle inner shadow along the knob's inner rim — smooths the transition
-/// from the pure-white body into the outer glow so the edge doesn't look
-/// aliased.
-fn knob_inner_shadow(center: Point) -> Gradient {
-    Gradient::new_radial(center, KNOB_RADIUS as f32).with_stops([
-        (0.0_f32, palette::css::BLACK.with_alpha(0.0)),
-        (0.80_f32, palette::css::BLACK.with_alpha(0.0)),
-        (1.0_f32, palette::css::BLACK.with_alpha(0.08)),
-    ])
+/// Subtle inner rim shading — smooths the pure-white body into the outer glow
+/// so the edge doesn't look aliased.
+fn knob_inner_shadow(center: Point, radius: f64) -> xilem::masonry::peniko::Gradient {
+    inner_ring(center, radius as f32, palette::css::WHEAT, 0.08, 0.60)
 }
 
 // --- MARK: Widget ---
@@ -253,39 +246,65 @@ impl Widget for Toggle {
             TRACK_WIDTH
         };
         let height = TRACK_HEIGHT.max(label_size.height);
-        let baseline =
-            ctx.child_baseline_offset(&self.label) + (height - label_size.height);
+        let baseline = ctx.child_baseline_offset(&self.label) + (height - label_size.height);
         ctx.set_baseline_offset(baseline);
         bc.constrain(Size::new(width, height))
     }
 
     fn paint(&mut self, ctx: &mut PaintCtx<'_>, _props: &PropertiesRef<'_>, scene: &mut Scene) {
         let size = ctx.size();
-        let track_y = (size.height - TRACK_HEIGHT) / 2.0;
-        let track_rect = Rect::new(0.0, track_y, TRACK_WIDTH, track_y + TRACK_HEIGHT)
-            .to_rounded_rect(TRACK_RADIUS);
+        // Vertically center the track inside the widget bounds. When a label
+        // is present the widget can be taller than the track, so use
+        // `size.height / 2.0` — not `track_y * 2.0`, which was a stale
+        // expression that shifted the track for tall widgets.
+        let cy = size.height / 2.0;
+        let track_center = Point::new(TRACK_WIDTH / 2.0, cy);
+        let track_rect = inflated_pill(track_center, 0.0, TRACK_HEIGHT, TRACK_WIDTH);
 
         // Animated progress drives both track color and knob position.
         let t = self.progress.position.clamp(0.0, 1.0) as f64;
-        fill(scene, &track_rect, lerp_color(OFF_COLOR, ON_COLOR, t));
+        let theme = theme();
+        let track_top = lerp_color(theme.toggle_off.start, theme.accent.start, t);
+        let track_bottom = lerp_color(theme.toggle_off.end, theme.accent.end, t);
+        let track_gradient = Gradient::new_linear(
+            Point::new(track_center.x, cy - TRACK_HEIGHT / 2.0),
+            Point::new(track_center.x, cy + TRACK_HEIGHT / 2.0),
+        )
+        .with_stops([(0.0_f32, track_top), (1.0_f32, track_bottom)]);
+        fill(scene, &track_rect, &track_gradient);
 
-        let knob_travel = TRACK_WIDTH - KNOB_PADDING * 2.0 - KNOB_RADIUS * 2.0;
-        let knob_x = KNOB_PADDING + KNOB_RADIUS + t * knob_travel;
-        let knob_center = Point::new(knob_x, track_y + TRACK_HEIGHT / 2.0);
+        // Knob slides between the left and right ends of the track, always
+        // KNOB_PADDING away from the outer track rim.
+        let knob_travel = TRACK_WIDTH - KNOB_WIDTH;
+        let knob_x = KNOB_WIDTH / 2.0 + t * knob_travel;
+        let knob_center = Point::new(knob_x, cy);
 
-        // Soft glow — a wide, single radial gradient. The smooth alpha ramp
-        // hides pixelation at the knob boundary far better than concentric
-        // hard-edged fills do.
-        let glow = Circle::new(knob_center, KNOB_RADIUS + KNOB_GLOW_RADIUS);
-        fill(scene, &glow, &knob_glow(knob_center));
+        // Elastic horizontal stretch. `velocity` is dimensionless (units of
+        // spring position per second). Multiply by the knob's base width so
+        // the extra pixels are visibly proportional at typical velocities.
+        let velocity = self.progress.velocity as f64;
+        let stretch_frac =
+            (velocity.abs() * KNOB_STRETCH_PER_VELOCITY).clamp(0.0, KNOB_MAX_STRETCH);
+        let knob_w = BASE_KNOB_WIDTH * (1.0 + stretch_frac);
+        let knob_radius = KNOB_HEIGHT / 2.0;
+
+        let knob_pill: RoundedRect = inflated_pill(knob_center, 0.0, KNOB_HEIGHT, knob_w);
+
+        // Outer soft glow — an inflated pill behind the knob. Fill uses the
+        // radial gradient anchored at the knob center; the pill's rounded
+        // rect gets us a matching pill-shaped clip region for free.
+        let glow_pill = inflated_pill(knob_center, KNOB_GLOW_RADIUS, KNOB_HEIGHT, knob_w);
+        fill(scene, &glow_pill, &knob_glow(knob_center, knob_radius));
 
         // Knob body.
-        let knob = Circle::new(knob_center, KNOB_RADIUS);
-        fill(scene, &knob, KNOB_COLOR);
+        fill(scene, &knob_pill, KNOB_COLOR);
 
-        // Inner rim shading — smooths the white → glow transition, so the
-        // curve doesn't read as a hard stair-stepped edge.
-        fill(scene, &knob, &knob_inner_shadow(knob_center));
+        // Inner rim shading — smooths the edge into the outer glow.
+        fill(
+            scene,
+            &knob_pill,
+            &knob_inner_shadow(knob_center, knob_radius),
+        );
     }
 
     fn accessibility_role(&self) -> Role {

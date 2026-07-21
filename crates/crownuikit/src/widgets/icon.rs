@@ -20,14 +20,44 @@ const DEFAULT_ICON_SIZE: f64 = 16.0;
 const DEFAULT_STROKE_WIDTH: f64 = 2.0;
 
 /// A single primitive in a parsed Lucide icon.
-enum IconShape {
+pub(crate) enum IconShape {
     Path(BezPath),
     Rect(RoundedRect),
     Circle(Circle),
     Line(Line),
 }
 
-fn parse_shapes(svg_body: &str) -> Vec<IconShape> {
+/// Render pre-parsed icon shapes into `scene`, scaled and centered inside
+/// `dest`. Uses the same rounded-cap stroking that Lucide icons ship with.
+pub(crate) fn paint_shapes(
+    scene: &mut Scene,
+    shapes: &[IconShape],
+    dest: Rect,
+    color: Color,
+    stroke_width: f64,
+) {
+    let scale = dest.width().min(dest.height()) / ICON_VIEW_BOX;
+    let offset_x = dest.x0 + (dest.width() - ICON_VIEW_BOX * scale) / 2.0;
+    let offset_y = dest.y0 + (dest.height() - ICON_VIEW_BOX * scale) / 2.0;
+    let transform = Affine::translate((offset_x, offset_y)) * Affine::scale(scale);
+    let stroke = Stroke {
+        width: stroke_width,
+        join: xilem::masonry::kurbo::Join::Round,
+        start_cap: xilem::masonry::kurbo::Cap::Round,
+        end_cap: xilem::masonry::kurbo::Cap::Round,
+        ..Default::default()
+    };
+    for shape in shapes {
+        match shape {
+            IconShape::Path(p) => scene.stroke(&stroke, transform, color, None, p),
+            IconShape::Rect(r) => scene.stroke(&stroke, transform, color, None, r),
+            IconShape::Circle(c) => scene.stroke(&stroke, transform, color, None, c),
+            IconShape::Line(l) => scene.stroke(&stroke, transform, color, None, l),
+        }
+    }
+}
+
+pub(crate) fn parse_shapes(svg_body: &str) -> Vec<IconShape> {
     let mut shapes = Vec::new();
     let bytes = svg_body.as_bytes();
     let mut i = 0;
@@ -158,25 +188,13 @@ impl Widget for Icon {
 
     fn paint(&mut self, ctx: &mut PaintCtx<'_>, _props: &PropertiesRef<'_>, scene: &mut Scene) {
         let box_size = ctx.size();
-        let scale = (box_size.width.min(box_size.height)) / ICON_VIEW_BOX;
-        let offset_x = (box_size.width - ICON_VIEW_BOX * scale) / 2.0;
-        let offset_y = (box_size.height - ICON_VIEW_BOX * scale) / 2.0;
-        let transform = Affine::translate((offset_x, offset_y)) * Affine::scale(scale);
-        let stroke = Stroke {
-            width: self.stroke_width,
-            join: xilem::masonry::kurbo::Join::Round,
-            start_cap: xilem::masonry::kurbo::Cap::Round,
-            end_cap: xilem::masonry::kurbo::Cap::Round,
-            ..Default::default()
-        };
-        for shape in &self.shapes {
-            match shape {
-                IconShape::Path(p) => scene.stroke(&stroke, transform, self.color, None, p),
-                IconShape::Rect(r) => scene.stroke(&stroke, transform, self.color, None, r),
-                IconShape::Circle(c) => scene.stroke(&stroke, transform, self.color, None, c),
-                IconShape::Line(l) => scene.stroke(&stroke, transform, self.color, None, l),
-            }
-        }
+        paint_shapes(
+            scene,
+            &self.shapes,
+            box_size.to_rect(),
+            self.color,
+            self.stroke_width,
+        );
     }
 
     fn accessibility_role(&self) -> Role {

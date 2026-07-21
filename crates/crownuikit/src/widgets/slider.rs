@@ -21,6 +21,8 @@ use xilem::masonry::vello::Scene;
 use xilem::{Affine, Color, Pod, ViewCtx};
 
 use crate::animation::{Clock, Spring};
+use crate::config::theme;
+use crate::util::{inflated_pill, inner_ring};
 
 const TRACK_HEIGHT: f64 = 8.0;
 const THUMB_WIDTH: f64 = 26.0;
@@ -32,34 +34,19 @@ const INNER_SHADOW_STRENGTH: f32 = 1.1;
 const WIDGET_VERTICAL_PADDING: f64 = 10.0;
 
 const TRACK_COLOR: Color = Color::from_rgb8(0xE4, 0xE4, 0xE4);
-const FILLED_GRADIENT_START: Color = Color::from_rgba8(0xEC, 0x48, 0x99, 0x80);
-const FILLED_GRADIENT_END: Color = Color::from_rgb8(0xEC, 0x48, 0x99);
 
 fn shadow_halo_color() -> Color {
     palette::css::BLACK.with_alpha(0.05)
 }
 
-fn inflated_pill(center: Point, inflate: f64) -> RoundedRect {
-    let half_w = THUMB_HALF_WIDTH + inflate;
-    let half_h = THUMB_HEIGHT / 2.0 + inflate;
-    Rect::new(
-        center.x - half_w,
-        center.y - half_h,
-        center.x + half_w,
-        center.y + half_h,
+fn inner_shadow_gradient(center: Point) -> xilem::masonry::peniko::Gradient {
+    inner_ring(
+        center,
+        THUMB_HALF_WIDTH as f32,
+        palette::css::WHITE_SMOKE,
+        INNER_SHADOW_STRENGTH,
+        0.78,
     )
-    .to_rounded_rect(half_h)
-}
-
-fn inner_shadow_gradient(center: Point) -> Gradient {
-    Gradient::new_radial(center, THUMB_HALF_WIDTH as f32).with_stops([
-        (0.0_f32, palette::css::WHITE.with_alpha(0.0)),
-        (0.78_f32, palette::css::WHITE.with_alpha(0.0)),
-        (
-            1.0_f32,
-            palette::css::WHITE_SMOKE.with_alpha(INNER_SHADOW_STRENGTH),
-        ),
-    ])
 }
 
 pub struct Slider {
@@ -161,13 +148,13 @@ impl Widget for Slider {
                 if ctx.is_active() {
                     let local = ctx.local_position(current.position);
                     if self.value_from_position(local.x, ctx.size().width) {
-                        // Drag: snap so the thumb stays under the pointer.
-                        self.displayed.snap_to_target();
+                        // Drag: spring toward the pointer so the thumb catches
+                        // up smoothly instead of snapping.
                         self.displayed.set_target(self.value as f32);
-                        self.displayed.snap_to_target();
+                        self.clock.reset();
+                        ctx.request_anim_frame();
                         ctx.submit_action::<f64>(self.value);
                     }
-                    ctx.request_render();
                 }
             }
             PointerEvent::Up(PointerButtonEvent {
@@ -351,15 +338,15 @@ impl Widget for Slider {
                 track_y + TRACK_HEIGHT,
             );
             // Gradient spans the full track so the visible fill reveals a
-            // consistent slice of the gradient as the value changes.
+            // consistent slice of the gradient as the value changes. Stops
+            // come from the shared theme so the slider's active color matches
+            // the toggle's on state.
+            let accent = theme().accent;
             let filled_gradient = Gradient::new_linear(
                 Point::new(THUMB_HALF_WIDTH, track_y),
                 Point::new(THUMB_HALF_WIDTH + track_width, track_y),
             )
-            .with_stops([
-                (0.0_f32, FILLED_GRADIENT_START),
-                (1.0_f32, FILLED_GRADIENT_END),
-            ]);
+            .with_stops([(0.0_f32, accent.start), (1.0_f32, accent.end)]);
             fill(
                 scene,
                 &filled_rect.to_rounded_rect(TRACK_HEIGHT / 2.0),
@@ -379,7 +366,12 @@ impl Widget for Slider {
         // outer shadow of the slider thumb
         fill(
             scene,
-            &inflated_pill(thumb_center, SHADOW_BLUR_RADIUS * 3.5),
+            &inflated_pill(
+                thumb_center,
+                SHADOW_BLUR_RADIUS * 3.5,
+                THUMB_HEIGHT,
+                THUMB_WIDTH,
+            ),
             shadow_halo_color(),
         );
 
