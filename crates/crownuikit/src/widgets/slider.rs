@@ -9,8 +9,9 @@ use xilem::masonry::accesskit::{self, Node, Role};
 use xilem::masonry::core::keyboard::{Key, NamedKey};
 use xilem::masonry::core::{
     AccessCtx, AccessEvent, BoxConstraints, ChildrenIds, EventCtx, LayoutCtx, PaintCtx,
-    PointerButton, PointerButtonEvent, PointerEvent, PointerUpdate, PropertiesMut, PropertiesRef,
-    RegisterCtx, TextEvent, Update, UpdateCtx, Widget, WidgetMut,
+    PointerButton, PointerButtonEvent, PointerEvent, PointerScrollEvent, PointerUpdate,
+    PropertiesMut, PropertiesRef, RegisterCtx, ScrollDelta, TextEvent, Update, UpdateCtx, Widget,
+    WidgetMut,
 };
 use xilem::masonry::kurbo::{Point, Rect, RoundedRect, Size};
 use xilem::masonry::peniko::color::palette;
@@ -18,6 +19,8 @@ use xilem::masonry::peniko::Gradient;
 use xilem::masonry::util::fill;
 use xilem::masonry::vello::Scene;
 use xilem::{Affine, Color, Pod, ViewCtx};
+
+use crate::animation::{Clock, Spring};
 
 const TRACK_HEIGHT: f64 = 8.0;
 const THUMB_WIDTH: f64 = 26.0;
@@ -62,15 +65,26 @@ fn inner_shadow_gradient(center: Point) -> Gradient {
 pub struct Slider {
     min: f64,
     max: f64,
+    /// The authoritative value — what actions report and what external state
+    /// sync uses. Always the exact target.
     value: f64,
+    /// Animated value driving the paint — springs toward `value`. Only differs
+    /// from `value` while a spring animation is in flight (i.e. after a
+    /// track-tap or keyboard step). During pointer drag we snap this to
+    /// `value` so the thumb tracks the cursor without lag.
+    displayed: Spring,
+    clock: Clock,
 }
 
 impl Slider {
     pub fn new(min: f64, max: f64, value: f64) -> Self {
+        let clamped = value.clamp(min, max);
         Self {
             min,
             max,
-            value: value.clamp(min, max),
+            value: clamped,
+            displayed: Spring::new(clamped as f32),
+            clock: Clock::new(),
         }
     }
 
@@ -78,7 +92,9 @@ impl Slider {
         let clamped = value.clamp(this.widget.min, this.widget.max);
         if (clamped - this.widget.value).abs() > f64::EPSILON {
             this.widget.value = clamped;
-            this.ctx.request_render();
+            this.widget.displayed.set_target(clamped as f32);
+            this.widget.clock.reset();
+            this.ctx.request_anim_frame();
         }
     }
 
@@ -90,7 +106,9 @@ impl Slider {
         }
     }
 
-    fn update_value_from_position(&mut self, x: f64, width: f64) -> bool {
+    /// Update `self.value` from a pointer x position. Returns true if the
+    /// value changed.
+    fn value_from_position(&mut self, x: f64, width: f64) -> bool {
         let track_width = (width - THUMB_HALF_WIDTH * 2.0).max(0.0);
         if track_width <= 0.0 {
             return false;
@@ -131,14 +149,22 @@ impl Widget for Slider {
                 ctx.request_focus();
                 ctx.capture_pointer();
                 let local = ctx.local_position(state.position);
-                if self.update_value_from_position(local.x, ctx.size().width) {
+                if self.value_from_position(local.x, ctx.size().width) {
+                    // Tap-to-jump: spring toward the new value.
+                    self.displayed.set_target(self.value as f32);
+                    self.clock.reset();
+                    ctx.request_anim_frame();
                     ctx.submit_action::<f64>(self.value);
                 }
             }
             PointerEvent::Move(PointerUpdate { current, .. }) => {
                 if ctx.is_active() {
                     let local = ctx.local_position(current.position);
-                    if self.update_value_from_position(local.x, ctx.size().width) {
+                    if self.value_from_position(local.x, ctx.size().width) {
+                        // Drag: snap so the thumb stays under the pointer.
+                        self.displayed.snap_to_target();
+                        self.displayed.set_target(self.value as f32);
+                        self.displayed.snap_to_target();
                         ctx.submit_action::<f64>(self.value);
                     }
                     ctx.request_render();
@@ -150,6 +176,50 @@ impl Widget for Slider {
             }) => {
                 if ctx.is_active() {
                     ctx.release_pointer();
+                }
+            }
+            PointerEvent::Scroll(PointerScrollEvent { delta, .. }) => {
+                // Wheel / trackpad. Convert whichever axis is active into a
+                // signed step and nudge the value. Horizontal takes priority
+                // (trackpad two-finger scroll on a horizontal slider); mouse
+                // wheel is vertical, and gets inverted so scrolling up = up.
+                // Per-source sensitivity. Mouse wheel notches are coarse (one
+                // notch per tick) so they need a bigger multiplier; trackpad
+                // pixels arrive in a continuous stream so a smaller factor
+                // keeps them controllable.
+                const WHEEL_SENSITIVITY: f64 = 3.5;
+                const PAGE_SENSITIVITY: f64 = 15.0;
+                const TRACKPAD_SENSITIVITY: f64 = 0.3;
+
+                let (dx, dy) = match delta {
+                    // Mouse wheel: pre-invert Y so wheel-down increases the
+                    // value (the shared `-dy` at the raw step cancels out).
+                    ScrollDelta::LineDelta(x, y) => (
+                        *x as f64 * WHEEL_SENSITIVITY,
+                        -(*y as f64) * WHEEL_SENSITIVITY,
+                    ),
+                    ScrollDelta::PageDelta(x, y) => (
+                        *x as f64 * PAGE_SENSITIVITY,
+                        -(*y as f64) * PAGE_SENSITIVITY,
+                    ),
+                    // Trackpad pixel deltas arrive already in "natural
+                    // scrolling" direction on most platforms — invert so the
+                    // slider tracks the finger (swipe right = value up).
+                    ScrollDelta::PixelDelta(pos) => {
+                        (-pos.x * TRACKPAD_SENSITIVITY, -pos.y * TRACKPAD_SENSITIVITY)
+                    }
+                };
+                let raw = if dx.abs() > f64::EPSILON { dx } else { -dy };
+                if raw.abs() > f64::EPSILON {
+                    let step = (self.max - self.min).abs().max(f64::EPSILON) / 100.0;
+                    let new_value = (self.value + raw * step).clamp(self.min, self.max);
+                    if (new_value - self.value).abs() > f64::EPSILON {
+                        self.value = new_value;
+                        self.displayed.set_target(self.value as f32);
+                        self.clock.reset();
+                        ctx.request_anim_frame();
+                        ctx.submit_action::<f64>(self.value);
+                    }
                 }
             }
             _ => {}
@@ -190,7 +260,9 @@ impl Widget for Slider {
             new_value = new_value.clamp(self.min, self.max);
             if (new_value - self.value).abs() > f64::EPSILON {
                 self.value = new_value;
-                ctx.request_render();
+                self.displayed.set_target(self.value as f32);
+                self.clock.reset();
+                ctx.request_anim_frame();
                 ctx.submit_action::<f64>(self.value);
             }
         }
@@ -202,6 +274,23 @@ impl Widget for Slider {
         _props: &mut PropertiesMut<'_>,
         _event: &AccessEvent,
     ) {
+    }
+
+    fn on_anim_frame(
+        &mut self,
+        ctx: &mut UpdateCtx<'_>,
+        _props: &mut PropertiesMut<'_>,
+        _interval: u64,
+    ) {
+        let dt = self.clock.tick();
+        self.displayed.step(dt);
+        ctx.request_paint_only();
+        if !self.displayed.at_rest() {
+            ctx.request_anim_frame();
+        } else {
+            self.displayed.snap_to_target();
+            self.clock.reset();
+        }
     }
 
     fn update(&mut self, ctx: &mut UpdateCtx<'_>, _props: &mut PropertiesMut<'_>, event: &Update) {
@@ -245,8 +334,11 @@ impl Widget for Slider {
         );
 
         // Filled portion
+        // Use the animated `displayed` value so track fill + thumb glide
+        // together when the value springs toward a new target.
+        let displayed_value = self.displayed.position as f64;
         let progress = if (self.max - self.min).abs() > f64::EPSILON {
-            (self.value - self.min) / (self.max - self.min)
+            ((displayed_value - self.min) / (self.max - self.min)).clamp(0.0, 1.0)
         } else {
             0.0
         };

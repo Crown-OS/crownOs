@@ -1,4 +1,5 @@
-use crownuikit::widgets::{context_menu::preview_menu, slider};
+use crownuikit::util::{INTER, INTER_FONT_DATA};
+use crownuikit::widgets::{slider, toggle};
 use winit::error::EventLoopError;
 use xilem::masonry::properties::Padding;
 use xilem::masonry::properties::types::AsUnit;
@@ -10,6 +11,8 @@ struct AppState {
     slider_a: f64,
     slider_b: f64,
     slider_c: f64,
+    toggle_a: bool,
+    toggle_b: bool,
 }
 
 fn app_logic(data: &mut AppState) -> impl WidgetView<AppState> + use<> {
@@ -27,12 +30,27 @@ fn app_logic(data: &mut AppState) -> impl WidgetView<AppState> + use<> {
         .corner_radius(16.0)
         .border(Color::from_rgb8(0xE4, 0xE4, 0xE7), 1.0);
 
+    let toggles = flex_col((
+        toggle("Wi-Fi", data.toggle_a, |s: &mut AppState, v| s.toggle_a = v),
+        toggle("Notifications", data.toggle_b, |s: &mut AppState, v| {
+            s.toggle_b = v
+        }),
+    ))
+    .gap(12.0.px())
+    .cross_axis_alignment(CrossAxisAlignment::Start);
+
+    let toggle_card = sized_box(toggles)
+        .padding(Padding::from_vh(20.0, 20.0))
+        .background_color(Color::from_rgb8(0xF5, 0xF5, 0xF7))
+        .corner_radius(16.0)
+        .border(Color::from_rgb8(0xE4, 0xE4, 0xE7), 1.0);
+
     let showcase = flex_row((
-        flex_col((label("Sliders"), slider_card))
+        flex_col((label("Sliders").font(INTER), slider_card))
             .gap(12.0.px())
             .cross_axis_alignment(CrossAxisAlignment::Start),
         FlexSpacer::Fixed(40.0.px()),
-        flex_col((label("Context Menu"), preview_menu::<AppState, ()>()))
+        flex_col((label("Toggles").font(INTER), toggle_card))
             .gap(12.0.px())
             .cross_axis_alignment(CrossAxisAlignment::Start),
     ))
@@ -47,8 +65,11 @@ fn main() -> Result<(), EventLoopError> {
         slider_a: 20.0,
         slider_b: 50.0,
         slider_c: 90.0,
+        toggle_a: false,
+        toggle_b: true,
     };
-    let app = Xilem::new_simple(state, app_logic, WindowOptions::new("crownuikit preview"));
+    let app = Xilem::new_simple(state, app_logic, WindowOptions::new("crownuikit preview"))
+        .with_font(INTER_FONT_DATA.to_vec());
     app.run_in(EventLoop::with_user_event())?;
     Ok(())
 }

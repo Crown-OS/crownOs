@@ -20,6 +20,7 @@ use xilem::view::{
 };
 use xilem::{AnyWidgetView, Color, WidgetView};
 
+use crate::util::INTER;
 use crate::widgets::icon::icon;
 
 // --- MARK: Palette ---
@@ -66,7 +67,10 @@ fn row_body<State: 'static, Action: 'static>(
         ),
     };
 
-    let label_view = label(text).text_size(LABEL_FONT_SIZE).color(text_color);
+    let label_view = label(text)
+        .text_size(LABEL_FONT_SIZE)
+        .font(INTER)
+        .color(text_color);
 
     let trailing: Box<AnyWidgetView<State, Action>> = if show_chevron {
         Box::new(
@@ -80,6 +84,7 @@ fn row_body<State: 'static, Action: 'static>(
         Box::new(
             label(shortcut)
                 .text_size(SHORTCUT_FONT_SIZE)
+                .font(INTER)
                 .color(shortcut_color),
         )
     };
@@ -188,6 +193,7 @@ pub fn menu_header<State: 'static, Action: 'static>(
         label(text)
             .text_size(HEADER_FONT_SIZE)
             .weight(FontWeight::MEDIUM)
+            .font(INTER)
             .color(HEADER_TEXT),
     )
     .expand_width()
