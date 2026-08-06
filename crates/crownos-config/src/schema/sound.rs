@@ -1,24 +1,8 @@
-use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Sound {
-    pub output_volume: f64,
-    pub input_volume: f64,
-    pub muted: bool,
-    pub output_device: Option<String>,
-}
-
-impl Sound {
-    pub const SECTION: &'static str = "sound";
-}
-
-impl Default for Sound {
-    fn default() -> Self {
-        Self {
-            output_volume: 50.0,
-            input_volume: 50.0,
-            muted: false,
-            output_device: None,
-        }
+crate::section! {
+    pub struct Sound in "sound", keys SoundKey {
+        pub output_volume as OutputVolume: f64 = 50.0,
+        pub input_volume as InputVolume: f64 = 50.0,
+        pub muted as Muted: bool = false,
+        pub output_device as OutputDevice: Option<String> = None,
     }
 }

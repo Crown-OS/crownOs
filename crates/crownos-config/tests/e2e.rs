@@ -22,6 +22,7 @@ fn e2e() {
     check_external_edit_breaks_the_hash();
     check_unparseable_file_is_not_clobbered();
     check_watcher();
+    check_key_watcher();
 
     clear_environment(&dir);
 }
@@ -170,6 +171,51 @@ fn check_dropped_subscription_stops_delivering(subscription: Subscription, rx: &
     );
 }
 
+/// A key subscription fires for its own key only, not for its neighbours in
+/// the same section.
+fn check_key_watcher() {
+    let (tx, rx) = channel();
+    let subscription = subscribe_key(schema::appearance::BarHeight, move |bar_height| {
+        let _ = tx.send(bar_height);
+    });
+
+    let mut appearance = Appearance {
+        bar_height: 40,
+        ..Appearance::default()
+    };
+    write(Appearance::SECTION, to_ron(&appearance).as_bytes());
+    assert_eq!(
+        rx.recv_timeout(DELIVERED)
+            .expect("the first change should always be delivered"),
+        40
+    );
+
+    // Same key, different section: a neighbour changed, so the file's bytes
+    // changed, but this subscriber's value did not.
+    appearance.transparency = 0.75;
+    write(Appearance::SECTION, to_ron(&appearance).as_bytes());
+    assert!(
+        rx.recv_timeout(SILENT).is_err(),
+        "a change to another key must not reach a key subscriber"
+    );
+
+    appearance.bar_height = 48;
+    write(Appearance::SECTION, to_ron(&appearance).as_bytes());
+    assert_eq!(
+        rx.recv_timeout(DELIVERED)
+            .expect("a change to the watched key should be delivered"),
+        48
+    );
+
+    drop(subscription);
+    appearance.bar_height = 24;
+    write(Appearance::SECTION, to_ron(&appearance).as_bytes());
+    assert!(
+        rx.recv_timeout(SILENT).is_err(),
+        "a dropped Subscription must stop delivering"
+    );
+}
+
 /// Write a section's file directly, bypassing `save` — i.e. what another app
 /// or `$EDITOR` would do.
 fn write(section: &str, bytes: &[u8]) {
@@ -180,6 +226,6 @@ fn read(section: &str) -> Vec<u8> {
     std::fs::read(path_for(section)).unwrap_or_else(|e| panic!("read {section}: {e}"))
 }
 
-fn to_ron(value: &Sound) -> String {
+fn to_ron<T: serde::Serialize>(value: &T) -> String {
     ron::ser::to_string_pretty(value, ron::ser::PrettyConfig::default()).expect("serialise")
 }

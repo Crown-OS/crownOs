@@ -8,23 +8,10 @@ pub enum PowerProfile {
     Performance,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Power {
-    pub screen_off_minutes: u32,
-    pub sleep_minutes: u32,
-    pub power_profile: PowerProfile,
-}
-
-impl Power {
-    pub const SECTION: &'static str = "power";
-}
-
-impl Default for Power {
-    fn default() -> Self {
-        Self {
-            screen_off_minutes: 10,
-            sleep_minutes: 30,
-            power_profile: PowerProfile::Balanced,
-        }
+crate::section! {
+    pub struct Power in "power", keys PowerKey {
+        pub screen_off_minutes as ScreenOffMinutes: u32 = 10,
+        pub sleep_minutes as SleepMinutes: u32 = 30,
+        pub power_profile as Profile: PowerProfile = PowerProfile::Balanced,
     }
 }

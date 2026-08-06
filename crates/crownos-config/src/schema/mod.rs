@@ -15,6 +15,27 @@
 //! of *newer* files only if the field has a default; prefer extending a struct
 //! over introducing a parallel one, and remember that a value which fails to
 //! parse silently falls back to [`Default`].
+//!
+//! # Keys
+//!
+//! Each struct is declared with [`section!`](crate::section), which also emits
+//! a [`Key`](crate::Key) type per field and an enum listing them all — that is
+//! what [`subscribe_key`](crate::subscribe_key) takes instead of a section
+//! string plus a field name.
+//!
+//! The key enums are re-exported here (`AppearanceKey`, `SoundKey`, ...) but
+//! the per-field key types are not: `Enabled` exists in three sections, so they
+//! stay behind their module and read as `wifi::Enabled` or
+//! `bluetooth::Enabled` at the call site.
+//!
+//! ```ignore
+//! use crownos_config::schema::{appearance, AppearanceKey};
+//!
+//! let sub = crownos_config::subscribe_key(appearance::DarkMode, |on| set_theme(on));
+//! for key in AppearanceKey::ALL {
+//!     println!("{key}"); // appearance.dark_mode, appearance.accent, ...
+//! }
+//! ```
 
 pub mod appearance;
 pub mod bluetooth;
@@ -24,10 +45,10 @@ pub mod power;
 pub mod sound;
 pub mod wifi;
 
-pub use appearance::{AccentColor, Appearance};
-pub use bluetooth::Bluetooth;
-pub use display::{Display, DisplayScale};
-pub use notification::Notifications;
-pub use power::{Power, PowerProfile};
-pub use sound::Sound;
-pub use wifi::Wifi;
+pub use appearance::{AccentColor, Appearance, AppearanceKey};
+pub use bluetooth::{Bluetooth, BluetoothKey};
+pub use display::{Display, DisplayKey, DisplayScale};
+pub use notification::{Notifications, NotificationsKey};
+pub use power::{Power, PowerKey, PowerProfile};
+pub use sound::{Sound, SoundKey};
+pub use wifi::{Wifi, WifiKey};

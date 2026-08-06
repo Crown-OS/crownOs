@@ -26,6 +26,13 @@
 //! section and the last hash [`save`](crate::save) wrote. That single check
 //! collapses duplicate inotify events, no-op writes, and this process's own
 //! saves.
+//!
+//! # Sections and keys
+//!
+//! The watcher's unit is the section, because the file is. [`subscribe_key`]
+//! narrows that to a single field on top of the same machinery: the section is
+//! still parsed whole, but the callback only fires when the field named by the
+//! [`Key`] changed value.
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -34,8 +41,8 @@ use std::sync::{Arc, LazyLock, Mutex};
 use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use serde::de::DeserializeOwned;
 
-use crate::config_dir;
 use crate::util::{hash_bytes, last_written, path_for};
+use crate::{config_dir, Key};
 
 type Callback = Arc<dyn Fn(Vec<u8>) + Send + Sync>;
 
@@ -213,5 +220,67 @@ where
         if let Ok(value) = ron::from_str::<T>(text) {
             callback(value);
         }
+    })
+}
+
+/// [`subscribe_typed`], but for one key of a section instead of all of it.
+///
+/// The key is a type — see [`Key`] — so the section name, the field and the
+/// value's type all come from it and there is no string to get wrong:
+///
+/// ```ignore
+/// use crownos_config::schema::appearance;
+///
+/// // `dark_mode: bool`, because `appearance::DarkMode` says so.
+/// let sub = crownos_config::subscribe_key(appearance::DarkMode, |dark_mode| {
+///     repaint(dark_mode);
+/// });
+/// ```
+///
+/// A section is always parsed as a whole — RON has no way to read one field of
+/// a struct in isolation — so the key's value is read out of the freshly parsed
+/// section and the callback fires only when it actually differs from the last
+/// one delivered. An app watching `dark_mode` therefore stays quiet while the
+/// user drags the transparency slider in the same file.
+///
+/// The first change after subscribing always fires, since there is nothing to
+/// compare against yet. Comparison is per-`Subscription`: two subscriptions to
+/// the same key each keep their own last value.
+pub fn subscribe_key<K, F>(key: K, callback: F) -> Subscription
+where
+    K: Key,
+    F: Fn(K::Value) + Send + Sync + 'static,
+{
+    let _ = key; // A key is zero-sized; everything about it is in the type.
+    subscribe_selected::<K::Section, K::Value, _, _>(K::SECTION, K::get, callback)
+}
+
+/// The change-detecting half of [`subscribe_key`], over a plain selector.
+///
+/// Split out so the deduplication logic is written once and does not have to be
+/// re-read through the [`Key`] indirection.
+fn subscribe_selected<T, V, S, F>(section: &str, select: S, callback: F) -> Subscription
+where
+    T: DeserializeOwned + Send + 'static,
+    V: PartialEq + Clone + Send + 'static,
+    S: Fn(&T) -> V + Send + Sync + 'static,
+    F: Fn(V) + Send + Sync + 'static,
+{
+    let last = Mutex::new(None::<V>);
+
+    subscribe_typed::<T, _>(section, move |value| {
+        let key = select(&value);
+
+        // Scoped so the lock is released before `callback` runs — it is user
+        // code and may take arbitrarily long, or write the section back.
+        {
+            let mut last = last.lock().unwrap_or_else(|poisoned| poisoned.into_inner());
+            if last.as_ref() == Some(&key) {
+                return;
+            }
+            *last = Some(key.clone());
+        }
+
+        callback(key);
     })
 }

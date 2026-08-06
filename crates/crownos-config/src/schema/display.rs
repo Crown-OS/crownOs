@@ -20,25 +20,11 @@ impl DisplayScale {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Display {
-    pub brightness: f64,
-    pub night_light: bool,
-    pub night_light_warmth: f64,
-    pub scale: DisplayScale,
-}
-
-impl Display {
-    pub const SECTION: &'static str = "display";
-}
-
-impl Default for Display {
-    fn default() -> Self {
-        Self {
-            brightness: 80.0,
-            night_light: false,
-            night_light_warmth: 50.0,
-            scale: DisplayScale::S100,
-        }
+crate::section! {
+    pub struct Display in "display", keys DisplayKey {
+        pub brightness as Brightness: f64 = 80.0,
+        pub night_light as NightLight: bool = false,
+        pub night_light_warmth as NightLightWarmth: f64 = 50.0,
+        pub scale as Scale: DisplayScale = DisplayScale::S100,
     }
 }

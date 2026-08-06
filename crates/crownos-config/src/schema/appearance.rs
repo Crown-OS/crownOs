@@ -10,30 +10,15 @@ pub enum AccentColor {
     Pink,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct Appearance {
-    // System
-    pub dark_mode: bool,
-    pub accent: AccentColor,
-    pub transparency: f64,
-    pub wallpaper: String,
+crate::section! {
+    pub struct Appearance in "appearance", keys AppearanceKey {
+        // System
+        pub dark_mode as DarkMode: bool = true,
+        pub accent as Accent: AccentColor = AccentColor::Purple,
+        pub transparency as Transparency: f64 = 0.0,
+        pub wallpaper as Wallpaper: String = String::new(),
 
-    // Bar
-    pub bar_height: u32,
-}
-
-impl Appearance {
-    pub const SECTION: &'static str = "appearance";
-}
-
-impl Default for Appearance {
-    fn default() -> Self {
-        Self {
-            dark_mode: true,
-            accent: AccentColor::Purple,
-            transparency: 0.0,
-            wallpaper: String::new(),
-            bar_height: 32,
-        }
+        // Bar
+        pub bar_height as BarHeight: u32 = 32,
     }
 }
