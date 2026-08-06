@@ -62,6 +62,12 @@ pub trait Key: Copy + Send + Sync + 'static {
 
     /// Read this field out of a parsed section.
     fn get(section: &Self::Section) -> Self::Value;
+
+    /// Overwrite this field in a section.
+    ///
+    /// Only the in-memory struct changes; persisting it is [`save`](crate::save)'s
+    /// job, so an editor can set several keys and write the file once.
+    fn set(section: &mut Self::Section, value: Self::Value);
 }
 
 /// Declare a settings section: the struct, its [`Default`], its section name,
@@ -183,6 +189,10 @@ macro_rules! section {
                 fn get(section: &$Section) -> $ty {
                     section.$field.clone()
                 }
+
+                fn set(section: &mut $Section, value: $ty) {
+                    section.$field = value;
+                }
             }
         )*
     };
@@ -215,6 +225,24 @@ mod tests {
 
         assert_eq!(appearance::BarHeight::get(&appearance), 48);
         assert!(!appearance::DarkMode::get(&appearance));
+    }
+
+    /// A typed key writes its own field, and nothing else.
+    #[test]
+    fn keys_write_their_field() {
+        let mut appearance = Appearance::default();
+
+        appearance::BarHeight::set(&mut appearance, 24);
+
+        assert_eq!(appearance.bar_height, 24);
+        assert_eq!(
+            Appearance {
+                bar_height: 32,
+                ..appearance.clone()
+            },
+            Appearance::default(),
+            "setting one key must leave every other field alone"
+        );
     }
 
     /// A key knows where it lives, in both forms.
