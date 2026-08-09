@@ -1,0 +1,39 @@
+[package]
+name = "crowndictator"
+version = "0.1.0"
+edition = "2024"
+description = "Push-to-talk voice dictation for Wayland"
+license = "MIT"
+
+[dependencies]
+crownshell = { path = "../crownshell" }
+# `~/.config/crownos/input.ron` — the switch, the microphone and the shortcut,
+# all written by the settings panel's Input page and followed live from here.
+crownos-config = { path = "../crownos-config" }
+
+# Wayland / event loop (versions matched to crownshell)
+smithay-client-toolkit = "0.19"
+calloop = "0.13"
+
+# ASR
+ort = { version = "=2.0.0-rc.12", features = ["cuda"] }
+hf-hub = { version = "0.4", default-features = false, features = [
+  "ureq",
+  "rustls-tls",
+] }
+
+# Audio
+cpal = "0.16"
+
+# Hotkey
+evdev = "0.13"
+
+# Misc
+anyhow = "1"
+log = "0.4"
+env_logger = "0.11"
+dirs = "6"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
