@@ -5,6 +5,13 @@ use serde::Serialize;
 
 use crate::util::{hash_bytes, path_for, record_written};
 
+/// `Option` fields are read as `floating: true` rather than `Some(true)`, so an
+/// optional setting is written the same way a required one is. Explicit
+/// `Some(..)` — which is what [`save`] emits — still parses.
+pub(crate) fn options() -> ron::Options {
+    ron::Options::default().with_default_extension(ron::extensions::Extensions::IMPLICIT_SOME)
+}
+
 /// Read a section, falling back to `T::default()`.
 ///
 /// A missing file is treated as "not configured yet": the default value is
@@ -17,7 +24,7 @@ use crate::util::{hash_bytes, path_for, record_written};
 pub fn load<T: DeserializeOwned + Serialize + Default>(section: &str) -> T {
     let path = path_for(section);
     match std::fs::read_to_string(&path) {
-        Ok(text) => ron::from_str(&text).unwrap_or_default(),
+        Ok(text) => options().from_str(&text).unwrap_or_default(),
         Err(_) => {
             let value = T::default();
             let _ = save(section, &value);

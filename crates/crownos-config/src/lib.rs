@@ -54,6 +54,7 @@
 
 mod config;
 mod key;
+pub mod keybind;
 mod parser;
 pub mod schema;
 mod util;
@@ -64,12 +65,13 @@ pub mod xilem_view;
 
 pub use crate::config::{config_dir, CONFIG_DIR_ENV};
 pub use key::Key;
+pub use keybind::{KeyCode, Keybind, Mods};
 pub use parser::{load, save};
 pub use util::{hash_bytes, last_written, path_for, record_written};
 pub use watch::{subscribe, subscribe_key, subscribe_typed, Subscription};
 
 /// Every settings type, also reachable as `crownos_config::schema::*`.
 pub use schema::{
-    AccentColor, Appearance, Bluetooth, Display, DisplayScale, Notifications, Power, PowerProfile,
-    Sound, Wifi,
+    AccentColor, Appearance, Bluetooth, Compositor, Display, DisplayScale, Input, Keybinds,
+    Notifications, Power, PowerProfile, Sound, Wifi,
 };

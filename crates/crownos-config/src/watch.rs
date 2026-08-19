@@ -217,7 +217,7 @@ where
         let Ok(text) = std::str::from_utf8(&bytes) else {
             return;
         };
-        if let Ok(value) = ron::from_str::<T>(text) {
+        if let Ok(value) = crate::parser::options().from_str::<T>(text) {
             callback(value);
         }
     })

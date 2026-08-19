@@ -67,6 +67,7 @@ fn check_save_load_round_trip() {
         transparency: 0.42,
         wallpaper: "/usr/share/backgrounds/crown.png".to_owned(),
         bar_height: 40,
+        ..Appearance::default()
     };
     save(Appearance::SECTION, &appearance).expect("save appearance");
 

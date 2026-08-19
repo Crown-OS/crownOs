@@ -113,6 +113,9 @@ macro_rules! section {
         $(#[$section_meta])*
         #[derive(::core::fmt::Debug, ::core::clone::Clone, ::core::cmp::PartialEq)]
         #[derive(::serde::Serialize, ::serde::Deserialize)]
+        // A field the file leaves out falls back to its declared default rather
+        // than failing the parse and reverting the whole section.
+        #[serde(default)]
         $vis struct $Section {
             $(
                 $(#[$field_meta])*
@@ -262,7 +265,18 @@ mod tests {
                 .iter()
                 .map(|key| key.as_str())
                 .collect::<Vec<_>>(),
-            ["dark_mode", "accent", "transparency", "wallpaper", "bar_height"]
+            [
+                "dark_mode",
+                "accent",
+                "transparency",
+                "wallpaper",
+                "bar_height",
+                "gaps_inner",
+                "gaps_outer",
+                "border_width",
+                "border_radius",
+                "animations"
+            ]
         );
         assert_eq!(
             AppearanceKey::BarHeight.to_string(),
