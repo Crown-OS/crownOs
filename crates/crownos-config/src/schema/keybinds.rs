@@ -13,20 +13,22 @@
 //! shortcut has to work from *outside*. It reads this file live, so rebinding
 //! takes effect without a restart or a re-login.
 
+use serde::{Deserialize, Serialize};
+
 use crate::keybind::Keybind;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Binding {
+    /// `"Super+Q"`, `"Super+Shift+1"`, `"Super"` for a modifier-only chord.
+    pub keys: String,
+    /// `"close-window"`, `"spawn foot"`, `"workspace +1"`.
+    pub action: String,
+}
 
 crate::section! {
     pub struct Keybinds in "keybinds", keys KeybindsKey {
-        /// Shows and hides the launchpad.
-        ///
-        /// One shortcut for both directions rather than two: the launchpad is
-        /// a place you go and come back from, and a separate "close" chord
-        /// would be one more thing to bind and one more thing to forget.
-        ///
-        /// Modifier-only by default — see [`Keybind::SUPER_CTRL`]. Clearing it
-        /// to [`Keybind::NONE`] leaves the launchpad reachable only by whatever
-        /// else opens it, which is a legitimate choice and not an error.
         pub launcher as Launcher: Keybind = Keybind::SUPER_CTRL,
+        pub custom_keybinds as CustomKeybinds: Vec<Binding> = Vec::new(),
     }
 }
 
@@ -39,7 +41,15 @@ mod tests {
     fn the_launchpad_opens_on_super_ctrl_by_default() {
         let keybinds = Keybinds::default();
 
-        assert_eq!(keybinds.launcher.mods, Mods { meta: true, ctrl: true, alt: false, shift: false });
+        assert_eq!(
+            keybinds.launcher.mods,
+            Mods {
+                meta: true,
+                ctrl: true,
+                alt: false,
+                shift: false
+            }
+        );
         assert_eq!(
             keybinds.launcher.key, None,
             "a modifier-only chord cannot collide with an application's own bindings"
@@ -77,11 +87,15 @@ mod tests {
     #[test]
     fn an_unbound_launcher_survives_the_file() {
         let cleared = Keybinds {
+            custom_keybinds: Vec::new(),
             launcher: Keybind::NONE,
         };
         let text = ron::ser::to_string_pretty(&cleared, Default::default()).expect("serialise");
 
         assert!(text.contains("launcher: \"None\""), "got:\n{text}");
-        assert_eq!(ron::from_str::<Keybinds>(&text).expect("parse back"), cleared);
+        assert_eq!(
+            ron::from_str::<Keybinds>(&text).expect("parse back"),
+            cleared
+        );
     }
 }

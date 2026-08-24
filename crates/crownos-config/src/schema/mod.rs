@@ -51,11 +51,11 @@ pub mod wifi;
 pub use appearance::{AccentColor, AnimationProfile, Appearance, AppearanceKey};
 pub use bluetooth::{Bluetooth, BluetoothKey};
 pub use compositor::{
-    Binding, Compositor, CompositorKey, LayoutMode, OutputSetting, OutputTransform, WindowRule,
+    Compositor, CompositorKey, LayoutMode, OutputSetting, OutputTransform, WindowRule,
 };
 pub use display::{Display, DisplayKey, DisplayScale};
 pub use input::{Input, InputKey};
-pub use keybinds::{Keybinds, KeybindsKey};
+pub use keybinds::{Binding, Keybinds, KeybindsKey};
 pub use notification::{Notifications, NotificationsKey};
 pub use power::{Power, PowerKey, PowerProfile};
 pub use sound::{Sound, SoundKey};
