@@ -275,7 +275,14 @@ mod tests {
                 "gaps_outer",
                 "border_width",
                 "border_radius",
-                "animations"
+                "animations",
+                "titlebar_height",
+                "snap",
+                "appmenu",
+                "blur",
+                "blur_passes",
+                "blur_size",
+                "blur_noise"
             ]
         );
         assert_eq!(

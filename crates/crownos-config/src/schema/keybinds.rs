@@ -19,15 +19,14 @@ use crate::keybind::Keybind;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Binding {
-    /// `"Super+Q"`, `"Super+Shift+1"`, `"Super"` for a modifier-only chord.
     pub keys: String,
-    /// `"close-window"`, `"spawn foot"`, `"workspace +1"`.
     pub action: String,
 }
 
 crate::section! {
     pub struct Keybinds in "keybinds", keys KeybindsKey {
-        pub launcher as Launcher: Keybind = Keybind::SUPER_CTRL,
+        pub launcher as Launcher: Keybind = Keybind::SUPER_SPACE,
+        pub dictation as Dictation: Keybind = Keybind::SUPER_CTRL,
         pub custom_keybinds as CustomKeybinds: Vec<Binding> = Vec::new(),
     }
 }
@@ -87,8 +86,10 @@ mod tests {
     #[test]
     fn an_unbound_launcher_survives_the_file() {
         let cleared = Keybinds {
-            custom_keybinds: Vec::new(),
+            dictation: Keybind::NONE,
             launcher: Keybind::NONE,
+
+            custom_keybinds: Vec::new(),
         };
         let text = ron::ser::to_string_pretty(&cleared, Default::default()).expect("serialise");
 

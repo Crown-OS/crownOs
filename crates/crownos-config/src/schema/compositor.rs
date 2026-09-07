@@ -14,12 +14,27 @@
 
 use serde::{Deserialize, Serialize};
 
+/// How a workspace arranges the windows on it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
-pub enum LayoutMode {
+pub enum WorkspaceMode {
+    /// The compositor owns every window's geometry.
     #[default]
-    MasterStack,
-    ScrollingColumns,
+    Tiling,
+    /// Windows keep the size and position they were given, and wear a titlebar.
     Floating,
+}
+
+impl WorkspaceMode {
+    pub fn is_floating(self) -> bool {
+        matches!(self, Self::Floating)
+    }
+
+    pub fn toggled(self) -> Self {
+        match self {
+            Self::Tiling => Self::Floating,
+            Self::Floating => Self::Tiling,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -93,12 +108,12 @@ pub struct OutputSetting {
     pub vrr: Option<bool>,
     /// Overrides the global default for workspaces created on this output.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub layout: Option<LayoutMode>,
+    pub layout: Option<WorkspaceMode>,
 }
 
 crate::section! {
     pub struct Compositor in "compositor", keys CompositorKey {
-        pub layout as Layout: LayoutMode = LayoutMode::MasterStack,
+        pub layout as Layout: WorkspaceMode = WorkspaceMode::Tiling,
         pub focus_follows_mouse as FocusFollowsMouse: bool = false,
 
         pub window_rules as WindowRules: Vec<WindowRule> = Vec::new(),
@@ -114,7 +129,7 @@ mod tests {
     #[test]
     fn the_documented_file_shape_round_trips() {
         let sample = r#"(
-            layout: ScrollingColumns,
+            layout: Floating,
             keybinds: [
                 (keys: "Super+Q", action: "close-window"),
             ],
@@ -137,7 +152,7 @@ mod tests {
             .from_str(sample)
             .expect("the documented shape must parse");
 
-        assert_eq!(parsed.layout, LayoutMode::ScrollingColumns);
+        assert_eq!(parsed.layout, WorkspaceMode::Floating);
         // Omitted fields fall back rather than failing the whole section.
         assert_eq!(
             parsed.focus_follows_mouse,
