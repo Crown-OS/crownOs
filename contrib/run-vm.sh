@@ -44,13 +44,28 @@ warning: /dev/kvm is not available, so the VM will run under emulation.
   It will boot, but slowly. On most systems you need to be in the `kvm` group.
 EOF
 
-if [[ $BUILD -eq 1 ]]; then
-  note "building the workspace ($PROFILE)"
-  if [[ $PROFILE == release ]]; then
-    ( cd "$REPO" && cargo build --workspace --release )
+# Build inside the dev shell unless the caller already has the native
+# dependencies. Calling `cargo build` directly assumes pkg-config and the
+# Wayland/DRM headers are on the system, which on NixOS -- and on any machine
+# where the user has not run bootstrap.sh -- they are not. The failure is a
+# smithay-client-toolkit build script panicking about pkg-config, which reads
+# like a broken dependency rather than a missing environment.
+build_workspace() {
+  local args=(build --workspace)
+  [[ $PROFILE == release ]] && args+=(--release)
+
+  if command -v pkg-config >/dev/null 2>&1; then
+    note "building the workspace ($PROFILE)"
+    ( cd "$REPO" && cargo "${args[@]}" )
   else
-    ( cd "$REPO" && cargo build --workspace )
+    note "building the workspace ($PROFILE) inside the dev shell"
+    note "  no pkg-config on PATH, so cargo would fail here on its own"
+    ( cd "$REPO" && nix develop --refresh "$SETUP_FLAKE" --command cargo "${args[@]}" )
   fi
+}
+
+if [[ $BUILD -eq 1 ]]; then
+  build_workspace
 fi
 
 BIN="$REPO/target/$PROFILE"
