@@ -13,9 +13,9 @@ use crownshell::{Anchor, KeyboardInteractivity, Layer, SurfaceHandler, WindowCon
 use bar_handler::BarHandler;
 use config::{BAR_HEIGHT, BAR_NAMESPACE};
 use widgets::{
-    battery::BatteryWidget, bluetooth::BluetoothWidget, brightness::BrightnessWidget,
-    clock::ClockWidget, layout::LayoutWidget, volume::VolumeWidget, wifi::WifiWidget, BarWidget,
-    WidgetRegistry,
+    BarWidget, WidgetRegistry, battery::BatteryWidget, bluetooth::BluetoothWidget,
+    brightness::BrightnessWidget, clock::ClockWidget, layout::LayoutWidget, volume::VolumeWidget,
+    wifi::WifiWidget,
 };
 
 use crate::config::BarConfig;

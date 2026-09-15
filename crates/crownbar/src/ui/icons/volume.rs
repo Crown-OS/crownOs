@@ -49,7 +49,13 @@ pub(super) fn draw(scene: &mut Scene, b: Rect, fg: Color, level: f32, muted: f32
             Point::new(cx + size * 0.18 + r * 1.05, cy + r * 0.55),
             to,
         );
-        scene.stroke(&Stroke::new(1.2), Affine::IDENTITY, fade(fg, alpha), None, &path);
+        scene.stroke(
+            &Stroke::new(1.2),
+            Affine::IDENTITY,
+            fade(fg, alpha),
+            None,
+            &path,
+        );
     }
 
     // Muted: slash overlaid, alpha follows the muted spring.

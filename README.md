@@ -15,31 +15,75 @@ reserves its exclusive zone; the terminal tiles below it.*
 
 ## Build it
 
-Any Linux distribution. The one command that matters:
+Your distribution's package manager installs the dependencies. There is nothing
+distro-specific about CrownOS and no preferred distribution to build it on.
 
 ```bash
 git clone https://github.com/Crown-OS/crownOs && cd crownOs
+
+# from crownos-setup, which knows the package names for your distro
+./bootstrap.sh --check      # what does this machine already have?
+./bootstrap.sh --deps-only  # install what it is missing
+
 cargo build --workspace
 ```
 
+`--check` changes nothing and prints the exact command for your system —
+`pacman -S --needed …` on Arch, `apt install …` on Debian, and so on for Fedora,
+openSUSE, Alpine, Void and Gentoo.
+
+The package names are not repeated here on purpose. They live in one file,
+[`deps.toml`](https://github.com/Crown-OS/crownOs-setup/blob/main/deps.toml),
+which generates the bootstrap script, the CI package list and
+[the per-distribution tables](https://github.com/Crown-OS/crownOs-setup/blob/main/generated/prerequisites.md).
+A copy in this README would be a fifth place to forget to update, and drift
+between those copies is a bug this project has already had.
+
 There is no overlay to write, no sibling layout to reproduce and no dependency
-to publish first — the crates resolve each other by path. If `cargo build` fails,
-it is a missing system library, and
-[crownos-setup](https://github.com/Crown-OS/crownOs-setup) installs those on any
-distro:
+to publish first — the crates resolve each other by path.
 
-```bash
-./bootstrap.sh --check     # what does this machine already have?
-./bootstrap.sh --dev       # install it, and clone the rest of the org
-```
+### Verified, not assumed
 
-It falls through three layers — your package manager, then Nix, then a
-container — so "it only builds on Arch" is not a thing that can happen. The Nix
-path is the one to reach for if your distro is unusual:
+The bootstrap path is tested by running it on a bare container of each
+distribution — install nothing by hand, let the script do it, then build:
+
+| Distribution | `--deps-only` | `--check` | `cargo build --workspace` |
+|---|---|---|---|
+| Arch | ok | 21 libraries, 3 tools | 2m 34s |
+| Fedora | ok | 21 libraries, 3 tools | 2m 29s |
+| Debian | ok | via `Containerfile` | builds |
+
+If a listed distribution fails, that is a bug in `deps.toml`, not something for
+you to work around locally.
+
+### Will you and another contributor see the same thing?
+
+Yes, and these are the three reasons — none of which depend on your distribution:
+
+- **One commit.** All nine crates live in this repository, so there is no way to
+  have a new `crownshell` against an old `crownbar`. That combination used to be
+  possible and it silently broke the compositor for eight days.
+- **One toolchain.** `rust-toolchain.toml` pins `1.88.0`; rustup honours it over
+  whatever you have installed, so nobody is compiling with a different rustc.
+- **One lockfile.** `Cargo.lock` is committed, and CI builds with `--locked`.
+
+What is *not* pinned is your system libraries — Mesa, Wayland, libinput come
+from your distribution and will differ. That is deliberate: CrownOS has to work
+against what people actually have. `bootstrap.sh --check` tells you what you are
+running against.
+
+### If your distribution is not listed
+
+Two fallbacks, neither of which needs your package manager to cooperate:
 
 ```bash
 nix develop github:Crown-OS/crownOs-setup --command cargo build --workspace
+podman build -t crownos-dev -f Containerfile . && podman run --rm -it -v "$PWD:/work:Z" crownos-dev
 ```
+
+Nix and the container are escape hatches, not the intended path. If the package
+manager route fails on a distribution that is listed, that is a bug in
+`deps.toml` and worth reporting.
 
 ## Try it
 
@@ -59,20 +103,38 @@ That is the whole desktop: compositor, bar, dock and notifications. It exercises
 layout, rendering, input and IPC — everything except the parts that only exist on
 real hardware.
 
-### A VM — before you trust it with a login
+### A spare TTY — the generic way to test the real path
+
+Nesting never touches seat acquisition or DRM/KMS, which are the two things that
+decide whether CrownOS works on real hardware. A second TTY tests both, needs no
+tooling on any distribution, and the way back is a keystroke.
+
+```bash
+./session/install.sh
+sudo systemctl start seatd          # or be in a logind session
+# Ctrl+Alt+F3 to reach a free TTY, log in, then:
+crownos-session
+```
+
+`Super+Shift+E` quits. If something wedges, `Ctrl+Alt+F1` returns to the session
+you came from — **have that TTY already logged in before you start**, so getting
+back is not itself a thing that has to work.
+
+This is what most compositor development actually looks like. Use it before a VM.
+
+### A VM — if you want isolation first
 
 ```bash
 ./contrib/run-vm.sh
 ```
 
-Builds the workspace, boots a NixOS guest on virtio-gpu, and autologins into
-CrownOS. This is the tier that tests what nesting cannot: **seat acquisition,
-DRM/KMS mode setting, and the session launcher a display manager would use** —
-the three things that decide whether CrownOS works on real hardware.
+Boots a guest on virtio-gpu and autologins into CrownOS, with your `target/`
+mounted read-only so a rebuild on the host is picked up by the next boot.
 
-Your `target/` is mounted read-only in the guest, so a rebuild on the host is
-picked up by the next boot; nothing is installed into the image. Needs `nix`,
-and `/dev/kvm` if you want it to be fast rather than merely correct.
+**This one needs Nix**, because the guest is built as a NixOS image — it is the
+one part of CrownOS that is not distribution-neutral, and it is an optional
+convenience rather than a required step. If you do not have Nix, use the TTY
+above; it tests the same code paths.
 
 ### Real hardware
 

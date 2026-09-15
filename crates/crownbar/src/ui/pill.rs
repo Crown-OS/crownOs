@@ -3,9 +3,9 @@
 //! reuse it without going through the bar's slot machinery.
 
 use vello::{
+    Scene,
     kurbo::{Affine, RoundedRect, Stroke},
     peniko::{Color, Fill},
-    Scene,
 };
 
 /// Draw the pill background for one widget at the given bounds.

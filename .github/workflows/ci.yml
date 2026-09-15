@@ -117,3 +117,55 @@ jobs:
             head -60 /tmp/dupes.txt
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # The claim "it builds on any distribution" is only worth making if something
+  # checks it. Each job starts from a bare image, installs nothing by hand, and
+  # lets bootstrap.sh work out the package names -- so a wrong name in deps.toml
+  # fails here rather than on a contributor's machine.
+  #
+  # Not required to merge: these pull whole distro images and are slower than
+  # the build. They run on main and on demand.
+  distros:
+    name: bootstrap on ${{ matrix.distro }}
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - distro: arch
+            image: archlinux:latest
+            prep: pacman -Sy --noconfirm --needed base-devel git rustup
+          - distro: fedora
+            image: fedora:latest
+            prep: dnf install -y git gcc
+          - distro: debian
+            image: debian:trixie
+            prep: apt-get update && apt-get install -y --no-install-recommends ca-certificates curl git build-essential
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      - run: ${{ matrix.prep }}
+      - uses: actions/checkout@v4
+
+      - name: Check out crownOs-setup
+        uses: actions/checkout@v4
+        with:
+          repository: Crown-OS/crownOs-setup
+          path: setup
+
+      - name: Install dependencies the way a contributor would
+        run: ./setup/bootstrap.sh --deps-only -y
+
+      - name: Every pkg-config module resolves
+        run: ./setup/bootstrap.sh --check
+
+      - name: Build
+        run: |
+          if ! command -v cargo >/dev/null; then
+            curl -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain 1.88.0 --profile minimal
+            . "$HOME/.cargo/env"
+          fi
+          cargo build --workspace
+

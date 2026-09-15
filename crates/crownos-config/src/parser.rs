@@ -1,7 +1,7 @@
 use std::io;
 
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 
 use crate::util::{hash_bytes, path_for, record_written};
 

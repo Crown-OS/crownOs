@@ -36,8 +36,28 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
-command -v nix >/dev/null || die "nix is required to build the VM image.
-  Install it, or use the nested session instead:  CROWN_BACKEND=winit crownos-session"
+# The VM guest is a NixOS image, which makes this the one part of CrownOS that
+# is not distribution-neutral. It is a convenience, not a required step -- a
+# spare TTY exercises the same seat and DRM/KMS paths on any distro.
+command -v nix >/dev/null || { cat >&2 <<'EOF'
+error: this script builds its guest image with Nix, which is not installed.
+
+  The VM is optional. Both of these test the same thing without it:
+
+    A spare TTY -- real seat, real DRM/KMS, works on any distribution:
+        ./session/install.sh
+        sudo systemctl start seatd
+        # Ctrl+Alt+F3, log in, then:
+        crownos-session
+        # Super+Shift+E quits; Ctrl+Alt+F1 goes back
+
+    Nested -- faster, no seat or DRM, good for layout and rendering work:
+        CROWN_BACKEND=winit crownos-session
+
+  If you want the VM specifically, Nix is at https://nixos.org/download --
+  it installs alongside your package manager and does not take over the system.
+EOF
+exit 1; }
 
 [[ -e /dev/kvm ]] || cat >&2 <<'EOF'
 warning: /dev/kvm is not available, so the VM will run under emulation.

@@ -13,7 +13,13 @@ pub(super) fn draw(scene: &mut Scene, b: Rect, fg: Color, strength: f32) {
     let thresholds = [0.15f32, 0.45, 0.75];
     let dot = Circle::new(Point::new(cx, base_y), 1.1);
     let dot_alpha = (strength * 3.0).clamp(0.0, 1.0);
-    scene.fill(Fill::NonZero, Affine::IDENTITY, fade(fg, dot_alpha.max(0.25)), None, &dot);
+    scene.fill(
+        Fill::NonZero,
+        Affine::IDENTITY,
+        fade(fg, dot_alpha.max(0.25)),
+        None,
+        &dot,
+    );
 
     for (i, t) in thresholds.iter().enumerate() {
         let r = 3.0 + i as f64 * 3.0;

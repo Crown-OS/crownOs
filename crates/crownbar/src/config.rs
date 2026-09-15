@@ -1,4 +1,4 @@
-use crownos_config::{load, Appearance};
+use crownos_config::{Appearance, load};
 
 pub static BAR_NAMESPACE: &str = "crownbar";
 pub static BAR_HEIGHT: u32 = 40;

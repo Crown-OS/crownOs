@@ -3,9 +3,9 @@ mod pill;
 
 use crownshell::{Text, TextContext, TextStyle};
 use vello::{
+    Scene,
     kurbo::{Affine, Rect},
     peniko::{Color, Fill},
-    Scene,
 };
 
 use crate::{

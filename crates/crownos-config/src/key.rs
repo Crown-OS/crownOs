@@ -204,7 +204,7 @@ macro_rules! section {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::{appearance, Appearance, AppearanceKey};
+    use crate::schema::{Appearance, AppearanceKey, appearance};
 
     /// The `= value` on each field is what `Default` uses.
     #[test]
