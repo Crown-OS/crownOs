@@ -17,3 +17,7 @@ documentation = "https://docs.rs/crownpositor-config"
 crownos-config = { workspace = true }
 regex = "1.13.1"
 tracing = { workspace = true }
+
+[dev-dependencies]
+# Only for the test that parses the shipped example config.
+ron = "0.12"

@@ -142,9 +142,6 @@ mod tests {
     fn the_documented_file_shape_round_trips() {
         let sample = r#"(
             layout: Floating,
-            keybinds: [
-                (keys: "Super+Q", action: "close-window"),
-            ],
             window_rules: [
                 (app_id: "Nautilus", floating: true),
                 (title: "^(Open|Save)", floating: true, focus: false),
@@ -176,6 +173,23 @@ mod tests {
         assert_eq!(parsed.window_rules[0].focus, None, "omitted stays unset");
         assert_eq!(parsed.window_rules[1].focus, Some(false));
         assert_eq!(parsed.outputs[0].scale, Some(2.0));
+        assert_eq!(
+            parsed.startup.len(),
+            2,
+            "an explicit startup list replaces the default"
+        );
+    }
+
+    /// Unknown fields are ignored rather than rejected, which is why a stale
+    /// `keybinds:` entry sat in the sample above long after that field moved to
+    /// the keybinds section -- the test kept passing and stopped describing the
+    /// real shape. Pinning the behaviour makes the next such drift deliberate.
+    #[test]
+    fn an_unknown_field_is_ignored_not_rejected() {
+        let parsed: Compositor = crate::parser::options()
+            .from_str(r#"(layout: Floating, keybinds: [], nonsense: 3)"#)
+            .expect("unknown fields must not fail the section");
+        assert_eq!(parsed.layout, WorkspaceMode::Floating);
     }
 
     /// The compositor never writes this file, but [`load`](crate::load) does

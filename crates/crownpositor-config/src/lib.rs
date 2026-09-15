@@ -181,4 +181,34 @@ mod tests {
         assert!(sections.contains(&"appearance"));
         assert!(sections.contains(&"display"));
     }
+
+    /// The example config we ship must parse against the schema we ship.
+    ///
+    /// It did not: `session/compositor.example.ron` kept a `keybinds` field and
+    /// `layout: MasterStack` after both were removed from the schema, so anyone
+    /// who copied it got a file that silently reverted the whole section to
+    /// defaults. Nothing caught it because no test read the file. This does.
+    #[test]
+    fn the_shipped_example_config_parses() {
+        let path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../session/compositor.example.ron"
+        );
+        let text = std::fs::read_to_string(path).unwrap_or_else(|e| panic!("read {path}: {e}"));
+
+        // Parse it the way `crownos_config::load` does. Bare `ron::from_str`
+        // rejects `app_id: "x"` where the field is `Option<String>`; the loader
+        // enables IMPLICIT_SOME so an optional setting is written like a
+        // required one. A test that parsed differently from the loader would
+        // fail on valid files and pass on invalid ones.
+        let parsed: Compositor = ron::Options::default()
+            .with_default_extension(ron::extensions::Extensions::IMPLICIT_SOME)
+            .from_str(&text)
+            .unwrap_or_else(|e| panic!("session/compositor.example.ron does not parse: {e}"));
+
+        assert!(
+            !parsed.startup.is_empty(),
+            "the example exists to show a working desktop; an empty startup list is not that"
+        );
+    }
 }
