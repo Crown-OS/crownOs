@@ -1,0 +1,23 @@
+[package]
+name = "crownuikit"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+authors = ["marvelxcodes <ramakrishnan0046@gmail.com>"]
+repository = "https://github.com/Crown-OS/crownuikit"
+homepage = "https://github.com/Crown-OS/crownuikit"
+description = "Widget kit for CrownOS interfaces, built on xilem."
+keywords = ["crownos", "gui", "widgets", "xilem", "wayland"]
+categories = ["gui", "graphics"]
+readme = "README.md"
+documentation = "https://docs.rs/crownuikit"
+
+[dependencies]
+blinc_icons = "0.5.1"
+winit = "0.30.13"
+xilem = "0.4.0"
+
+[profile.dev]
+# See https://doc.rust-lang.org/cargo/reference/profiles.html#split-debuginfo
+split-debuginfo = "unpacked"
