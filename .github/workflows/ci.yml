@@ -1,0 +1,119 @@
+# CI for the CrownOS workspace.
+#
+# Self-contained on purpose. The org keeps a reusable `rust.yml` for the
+# single-crate repos that are still separate, but with one caller it would cost
+# a second checkout, a second place to look when CI breaks, and `@main` version
+# skew — for no reuse at all.
+#
+# The whole workspace builds on every push. That is deliberate: path filtering
+# would hide cross-crate breakage, which is the exact class of bug the merge
+# exists to catch. Restoring the cargo cache and compiling ~700 third-party
+# crates dominates the run anyway; skipping 2,000 lines of crownbar saves
+# seconds.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+  # Keep tests away from a real ~/.config/crownos. CROWN_CONFIG_DIR is
+  # process-global, which is also why crownos-config's e2e suite is a single
+  # test function.
+  CROWN_CONFIG_DIR: /tmp/crownos-ci
+
+jobs:
+  # Fast feedback, no native dependencies. Blocking.
+  fmt:
+    name: rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - run: cargo fmt --all --check
+
+  build:
+    name: build / clippy / test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The union of every group in crownos-setup/deps.toml that a workspace
+      # member needs: base + compositor + dictation + testing. Generated from
+      # that file — edit deps.toml and run scripts/gen.py, do not edit here.
+      - name: Install native dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential pkg-config \
+            libwayland-dev wayland-protocols libxkbcommon-dev \
+            libvulkan-dev mesa-common-dev libegl1-mesa-dev libgbm-dev \
+            libfontconfig-dev libfreetype-dev \
+            libdbus-1-dev libbluetooth-dev \
+            libxcb1-dev libx11-dev \
+            libdrm-dev libinput-dev libseat-dev libudev-dev libpixman-1-dev xwayland \
+            libasound2-dev libevdev-dev \
+            dbus
+
+      # rust-toolchain.toml pins 1.88.0, and rustup honours it over whatever
+      # this action requests — the pin is the thing that actually decides.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Build
+        run: cargo build --workspace --all-targets --locked
+
+      # Non-blocking on purpose: ~15,000 lines have never been linted, so
+      # `-D warnings` today would make every pull request red for reasons
+      # unrelated to the change. Flip it here when the backlog is cleared.
+      - name: Clippy (advisory)
+        id: clippy
+        continue-on-error: true
+        run: cargo clippy --workspace --all-targets
+
+      - name: Note clippy result
+        if: steps.clippy.outcome == 'failure'
+        run: |
+          {
+            echo "### Clippy reported warnings"
+            echo ""
+            echo "Advisory only — this does not fail the build yet."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Split for one crate's sake. crownotify's tests register real well-known
+      # names on the session bus, so they need a bus and must not run
+      # concurrently — but forcing --test-threads=1 on all 268 tests to
+      # accommodate that would slow everything down for one crate's benefit.
+      - name: Test
+        run: cargo test --workspace --exclude crownotify
+
+      - name: Test crownotify (under a D-Bus session)
+        run: dbus-run-session -- cargo test -p crownotify -- --test-threads=1
+
+      # Duplicate versions of the same crate are what the old crown-versions.toml
+      # existed to police. One lockfile makes them visible in one command, so
+      # this replaces 212 lines of Python. Advisory: two graphics lanes coexist
+      # deliberately while crownuikit is on xilem.
+      - name: Duplicate dependency versions (advisory)
+        continue-on-error: true
+        run: |
+          cargo tree --workspace --duplicates | tee /tmp/dupes.txt
+          {
+            echo "### Duplicate dependency versions"
+            echo '```'
+            head -60 /tmp/dupes.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
