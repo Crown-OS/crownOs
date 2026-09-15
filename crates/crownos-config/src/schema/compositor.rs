@@ -128,7 +128,26 @@ crate::section! {
         /// it directly rather than through a shell, so quoting is handled by
         /// `crownpositor`'s `config::startup::split_argv` and there is no
         /// globbing or variable expansion. Blank entries are dropped.
-        pub startup as Startup: Vec<String> = Vec::new(),
+        ///
+        /// Defaults to the CrownOS desktop. An empty list used to be the
+        /// default, which meant a first run came up as a bare compositor with
+        /// no bar, no dock and no notifications — correct behaviour for a
+        /// generic compositor, but CrownOS is not one, and "it started and the
+        /// screen is empty" was the first thing every new user saw.
+        ///
+        /// A missing binary is logged by `crownpositor`'s `spawn` and skipped,
+        /// so listing a component that is not installed costs a warning line
+        /// rather than a broken session. Set `startup: []` explicitly for a
+        /// bare compositor.
+        ///
+        /// `crowndictator` is deliberately absent: it downloads 700 MB–2.5 GB
+        /// of model weights on first run, which is not something a default
+        /// should do to someone.
+        pub startup as Startup: Vec<String> = vec![
+            "crownbar".to_owned(),
+            "crowndock".to_owned(),
+            "crownotify".to_owned(),
+        ],
     }
 }
 

@@ -3,6 +3,11 @@
 A Wayland desktop written from scratch in Rust — compositor, shell framework,
 bar, dock, notifications, settings schema and a push-to-talk dictation daemon.
 
+![CrownOS running nested: crownbar along the top, a terminal tiled beneath it](assets/screenshot.png)
+
+*crownpositor with crownbar, running nested inside an existing session. The bar
+reserves its exclusive zone; the terminal tiles below it.*
+
 > **CrownOS is early.** It builds, it runs, and it is not something to put on
 > your only laptop yet. The
 > [project status page](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/00-overview/project-status.md)
