@@ -31,7 +31,7 @@ sudo pacman -S --needed base-devel pkgconf \
 ```
 
 Full list, including Debian/Ubuntu:
-[Prerequisites](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/10-getting-started/prerequisites.md).
+[Prerequisites](https://github.com/Crown-OS/crownOs-setup/blob/main/generated/prerequisites.md).
 
 ## Build and run
 
@@ -116,7 +116,7 @@ obvious place to start.
 ## Contributing
 
 See the organization-wide
-[contribution guide](https://github.com/Crown-OS/crownos-documentations/blob/main/CONTRIBUTING.md).
+[contribution guide](https://github.com/Crown-OS/crownOs/blob/main/CONTRIBUTING.md).
 Default branch here is **`main`**.
 
 ## License

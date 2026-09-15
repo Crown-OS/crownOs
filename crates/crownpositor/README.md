@@ -68,7 +68,7 @@ sudo pacman -S --needed base-devel pkgconf \
 ```
 
 Debian/Ubuntu equivalents and the full list:
-[Prerequisites](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/10-getting-started/prerequisites.md).
+[Prerequisites](https://github.com/Crown-OS/crownOs-setup/blob/main/generated/prerequisites.md).
 
 Rust **1.88+** (set by the dependency graph, not the edition; pinned in `rust-toolchain.toml`).
 
@@ -133,9 +133,9 @@ Unknown values for the first two log a warning and fall back rather than failing
 An empty `keybinds` list means "use the built-in defaults", not "nothing bound".
 
 Full schema and the 32 default bindings:
-[Configuration schema](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/50-reference/config-schema.md)
+[Configuration schema](https://github.com/Crown-OS/crownOs/blob/main/docs/configuration.md)
 ·
-[Keybindings](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/50-reference/keybindings.md)
+[Keybindings](https://github.com/Crown-OS/crownOs/blob/main/docs/keybindings.md)
 
 ## Architecture
 
@@ -168,7 +168,7 @@ Two boundaries worth respecting when adding code:
 ## Contributing
 
 See the organization-wide
-[contribution guide](https://github.com/Crown-OS/crownos-documentations/blob/main/CONTRIBUTING.md).
+[contribution guide](https://github.com/Crown-OS/crownOs/blob/main/CONTRIBUTING.md).
 Default branch here is **`main`**.
 
 ## License

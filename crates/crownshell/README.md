@@ -33,7 +33,7 @@ sudo pacman -S --needed base-devel pkgconf \
   dbus bluez bluez-libs
 ```
 
-Debian/Ubuntu equivalents and the full list: [Prerequisites](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/10-getting-started/prerequisites.md). Or run [`crownos-setup`](https://github.com/Crown-OS/crownos-setup)'s `./bootstrap.sh --check`, which installs them for you.
+Debian/Ubuntu equivalents and the full list: [Prerequisites](https://github.com/Crown-OS/crownOs-setup/blob/main/generated/prerequisites.md). Or run [`crownos-setup`](https://github.com/Crown-OS/crownos-setup)'s `./bootstrap.sh --check`, which installs them for you.
 
 ## Add it to your project
 
@@ -232,7 +232,7 @@ You do not need CrownOS to use crownshell, or to develop against it — any wlr-
 
 ## Contributing
 
-See the organization-wide [contribution guide](https://github.com/Crown-OS/crownos-documentations/blob/main/CONTRIBUTING.md), and [The layer-shell stack](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/20-architecture/layer-shell-stack.md) for how the framework fits into the wider desktop.
+See the organization-wide [contribution guide](https://github.com/Crown-OS/crownOs/blob/main/CONTRIBUTING.md), and [The layer-shell stack](https://github.com/Crown-OS/crownOs/blob/main/docs/architecture.md) for how the framework fits into the wider desktop.
 
 The default branch here is **`main`**.
 

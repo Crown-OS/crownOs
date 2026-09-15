@@ -36,7 +36,7 @@ sudo pacman -S --needed base-devel pkgconf \
 ```
 
 Full list, including Debian/Ubuntu:
-[Prerequisites](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/10-getting-started/prerequisites.md),
+[Prerequisites](https://github.com/Crown-OS/crownOs-setup/blob/main/generated/prerequisites.md),
 or run [`crownos-setup`](https://github.com/Crown-OS/crownos-setup)'s
 `./bootstrap.sh --check` to have them installed for you.
 
@@ -99,7 +99,7 @@ no examples either — the gallery in `main.rs` is the only exercise of the widg
 ## Contributing
 
 See the organization-wide
-[contribution guide](https://github.com/Crown-OS/crownos-documentations/blob/main/CONTRIBUTING.md).
+[contribution guide](https://github.com/Crown-OS/crownOs/blob/main/CONTRIBUTING.md).
 Default branch here is **`main`**.
 
 ## License

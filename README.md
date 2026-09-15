@@ -10,7 +10,7 @@ reserves its exclusive zone; the terminal tiles below it.*
 
 > **CrownOS is early.** It builds, it runs, and it is not something to put on
 > your only laptop yet. The
-> [project status page](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/00-overview/project-status.md)
+> [table below](#verified-not-assumed)
 > says what works today, component by component.
 
 ## Build it
@@ -165,7 +165,7 @@ independent versions — `cargo add crownshell` works exactly as before.
 
 `~/.config/crownos/*.ron`, watched live. A rebind takes effect without a restart.
 `session/compositor.example.ron` is a working starting point;
-[the schema reference](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/50-reference/config-schema.md)
+[the schema reference](docs/configuration.md)
 documents every field.
 
 One thing worth knowing up front: a keybind that does not parse silently reverts
@@ -185,12 +185,11 @@ rustfmt blocks in CI; clippy is advisory while a lint backlog is cleared. The
 toolchain is pinned to 1.88.0 in `rust-toolchain.toml` — rustup honours that over
 whatever you have installed, so everyone compiles with the same rustc.
 
-The [contribution guide](https://github.com/Crown-OS/crownos-documentations/blob/main/CONTRIBUTING.md)
+The [contribution guide](CONTRIBUTING.md)
 has the rest.
 
 ## Elsewhere in the organisation
 
-[crownos-documentations](https://github.com/Crown-OS/crownos-documentations) ·
 [crownOs-setup](https://github.com/Crown-OS/crownOs-setup) ·
 [crownos-iso](https://github.com/Crown-OS/crownos-iso) ·
 [crownos-website](https://github.com/Crown-OS/crownos-website) ·

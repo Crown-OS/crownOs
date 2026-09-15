@@ -45,7 +45,7 @@ sudo pacman -S --needed base-devel pkgconf alsa-lib libevdev \
 ```
 
 Debian/Ubuntu equivalents:
-[Prerequisites](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/10-getting-started/prerequisites.md#crowndictator).
+[Prerequisites](https://github.com/Crown-OS/crownOs-setup/blob/main/generated/prerequisites.md).
 
 **`/dev/input` read access.** The global hotkey is detected by reading
 `/dev/input/event*` directly, so your user must be in the `input` group:
@@ -163,7 +163,7 @@ one in `src/controller.rs`. They need no model, no microphone and no
 ## Contributing
 
 See the organization-wide
-[contribution guide](https://github.com/Crown-OS/crownos-documentations/blob/main/CONTRIBUTING.md).
+[contribution guide](https://github.com/Crown-OS/crownOs/blob/main/CONTRIBUTING.md).
 Default branch here is **`main`**.
 
 ## License

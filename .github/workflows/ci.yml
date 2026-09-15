@@ -33,7 +33,7 @@ env:
 jobs:
   # Fast feedback, no native dependencies. Blocking.
   fmt:
-    name: rustfmt
+    name: rustfmt + links
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +41,12 @@ jobs:
         with:
           components: rustfmt
       - run: cargo fmt --all --check
+
+      # The docs rotted in their old repository because links pointed at pages
+      # and headings that had been renamed and nothing checked. Cheap to check,
+      # so it blocks -- a broken link in a merged PR is a broken link forever.
+      - name: Documentation links resolve
+        run: python3 scripts/check-links.py
 
   build:
     name: build / clippy / test

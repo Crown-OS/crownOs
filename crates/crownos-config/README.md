@@ -113,7 +113,7 @@ one consistent snapshot instead of four independent edits.
 `notifications` · `power` · `sound` · `wifi`
 
 Full field reference:
-[Configuration schema](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/50-reference/config-schema.md).
+[Configuration schema](https://github.com/Crown-OS/crownOs/blob/main/docs/configuration.md).
 
 Sections are declared with a `section!` macro that generates the struct, a
 `SECTION` constant, a `Default` impl, a **zero-sized unit key type per field**,
@@ -171,7 +171,7 @@ runs test functions on parallel threads. Add a sub-check and call it from
 ## Contributing
 
 See the organization-wide
-[contribution guide](https://github.com/Crown-OS/crownos-documentations/blob/main/CONTRIBUTING.md).
+[contribution guide](https://github.com/Crown-OS/crownOs/blob/main/CONTRIBUTING.md).
 Default branch here is **`main`**.
 
 ## License

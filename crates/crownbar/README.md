@@ -31,7 +31,7 @@ sudo pacman -S --needed base-devel pkgconf binutils \
 ```
 
 Full list, including Debian/Ubuntu:
-[Prerequisites](https://github.com/Crown-OS/crownos-documentations/blob/main/docs/10-getting-started/prerequisites.md).
+[Prerequisites](https://github.com/Crown-OS/crownOs-setup/blob/main/generated/prerequisites.md).
 
 > **This crate forces the BFD linker** via a committed `.cargo/config.toml`
 > (`-C link-arg=-fuse-ld=bfd`). You need `ld.bfd` from `binutils`. If you use
@@ -117,7 +117,7 @@ are testable without hardware — is a well-scoped contribution.
 ## Contributing
 
 See the organization-wide
-[contribution guide](https://github.com/Crown-OS/crownos-documentations/blob/main/CONTRIBUTING.md).
+[contribution guide](https://github.com/Crown-OS/crownOs/blob/main/CONTRIBUTING.md).
 Default branch here is **`main`**.
 
 ## License
