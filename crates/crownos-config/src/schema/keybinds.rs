@@ -39,7 +39,15 @@ mod tests {
     fn the_launchpad_opens_on_super_ctrl_by_default() {
         let keybinds = Keybinds::default();
 
-        assert_eq!(keybinds.launcher.mods, Mods { meta: true, ctrl: true, alt: false, shift: false });
+        assert_eq!(
+            keybinds.launcher.mods,
+            Mods {
+                meta: true,
+                ctrl: true,
+                alt: false,
+                shift: false
+            }
+        );
         assert_eq!(
             keybinds.launcher.key, None,
             "a modifier-only chord cannot collide with an application's own bindings"
@@ -82,6 +90,9 @@ mod tests {
         let text = ron::ser::to_string_pretty(&cleared, Default::default()).expect("serialise");
 
         assert!(text.contains("launcher: \"None\""), "got:\n{text}");
-        assert_eq!(ron::from_str::<Keybinds>(&text).expect("parse back"), cleared);
+        assert_eq!(
+            ron::from_str::<Keybinds>(&text).expect("parse back"),
+            cleared
+        );
     }
 }

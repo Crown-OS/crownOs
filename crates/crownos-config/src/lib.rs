@@ -63,12 +63,12 @@ mod watch;
 #[cfg(feature = "xilem")]
 pub mod xilem_view;
 
-pub use crate::config::{config_dir, CONFIG_DIR_ENV};
+pub use crate::config::{CONFIG_DIR_ENV, config_dir};
 pub use key::Key;
 pub use keybind::{KeyCode, Keybind, Mods};
 pub use parser::{load, save};
 pub use util::{hash_bytes, last_written, path_for, record_written};
-pub use watch::{subscribe, subscribe_key, subscribe_typed, Subscription};
+pub use watch::{Subscription, subscribe, subscribe_key, subscribe_typed};
 
 /// Every settings type, also reachable as `crownos_config::schema::*`.
 pub use schema::{

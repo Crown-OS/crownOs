@@ -122,6 +122,13 @@ crate::section! {
 
         pub window_rules as WindowRules: Vec<WindowRule> = Vec::new(),
         pub outputs as Outputs: Vec<OutputSetting> = Vec::new(),
+
+        /// Command lines spawned once the session is up — bar, dock, wallpaper,
+        /// notification daemon. Each entry is one command; the compositor execs
+        /// it directly rather than through a shell, so quoting is handled by
+        /// `crownpositor`'s `config::startup::split_argv` and there is no
+        /// globbing or variable expansion. Blank entries are dropped.
+        pub startup as Startup: Vec<String> = Vec::new(),
     }
 }
 
