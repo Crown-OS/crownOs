@@ -1,0 +1,62 @@
+[package]
+name = "crowndictator"
+version = "0.1.0"
+edition = "2024"
+description = "Push-to-talk voice dictation for Wayland."
+license = "MIT"
+rust-version = "1.88"
+authors = ["marvelxcodes <ramakrishnan0046@gmail.com>"]
+repository = "https://github.com/Crown-OS/crowndictator"
+homepage = "https://github.com/Crown-OS/crowndictator"
+keywords = ["crownos", "wayland", "dictation", "speech-to-text", "asr"]
+categories = ["multimedia::audio", "accessibility"]
+readme = "README.md"
+documentation = "https://docs.rs/crowndictator"
+
+[dependencies]
+crownshell = "0.3"
+# `~/.config/crownos/input.ron` — the switch, the microphone and the shortcut,
+# all written by the settings panel's Input page and followed live from here.
+crownos-config = "0.2"
+
+# Wayland / event loop (versions matched to crownshell)
+smithay-client-toolkit = "0.19"
+calloop = "0.13"
+
+# ASR
+#
+# default-features are OFF deliberately. ort's defaults include `tls-native`,
+# which drags in native-tls and therefore OpenSSL -- the one native dependency
+# in the whole tree that nothing else needed, and the reason this crate was the
+# only one that would not compile. `tls-rustls` is the same download over
+# rustls, which is what hf-hub below already uses. Everything else here is
+# ort's own default set, restated.
+ort = { version = "=2.0.0-rc.12", default-features = false, features = [
+  "std",
+  "ndarray",
+  "tracing",
+  "copy-dylibs",
+  "api-24",
+  "download-binaries",
+  "tls-rustls",
+  "cuda",
+] }
+hf-hub = { version = "0.4", default-features = false, features = [
+  "ureq",
+  "rustls-tls",
+] }
+
+# Audio
+cpal = "0.16"
+
+# Hotkey
+evdev = "0.13"
+
+# Misc
+anyhow = "1.0.104"
+log = "0.4"
+env_logger = "0.11"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
