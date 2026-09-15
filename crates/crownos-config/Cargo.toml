@@ -1,12 +1,12 @@
 [package]
 name = "crownos-config"
 version = "0.2.0"
-edition = "2024"
-rust-version = "1.88"
-license = "MIT"
-authors = ["marvelxcodes <ramakrishnan0046@gmail.com>"]
-repository = "https://github.com/Crown-OS/crownos-config"
-homepage = "https://github.com/Crown-OS/crownos-config"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Shared settings schema and live-reloading configuration store for CrownOS."
 keywords = ["crownos", "config", "ron", "settings", "wayland"]
 categories = ["config", "os::linux-apis"]
@@ -17,8 +17,8 @@ documentation = "https://docs.rs/crownos-config"
 dirs = "6"
 notify = "8"
 ron = "0.12"
-serde = { version = "1.0.228", features = ["derive"] }
-xilem = { version = "0.4.0", optional = true }
+serde = { workspace = true, features = ["derive"] }
+xilem = { workspace = true, optional = true }
 
 [features]
 # Deliberately empty. `xilem` gates exactly one module -- `xilem_view`, a set of
@@ -35,7 +35,3 @@ xilem = { version = "0.4.0", optional = true }
 #     crownos-config = { version = "0.2", features = ["xilem"] }
 default = []
 xilem = ["dep:xilem"]
-
-[profile.dev]
-# See https://doc.rust-lang.org/cargo/reference/profiles.html#split-debuginfo
-split-debuginfo = "unpacked"

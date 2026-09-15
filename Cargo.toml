@@ -1,0 +1,42 @@
+[workspace]
+members  = ["crates/*"]
+resolver = "3"
+
+[workspace.package]
+edition      = "2024"
+rust-version = "1.88"
+license      = "MIT"
+authors      = ["marvelxcodes <ramakrishnan0046@gmail.com>"]
+homepage     = "https://github.com/Crown-OS/crownOs"
+repository   = "https://github.com/Crown-OS/crownOs"
+
+# Replaces Crown-OS/.github/crown-versions.toml. What 443 lines of Python
+# policed, cargo now enforces structurally: one declaration, nine references.
+#
+# calloop, dirs and tiny-skia are deliberately NOT here -- their members
+# genuinely disagree (0.13 client-side vs 0.14 compositor-side), and a hoisted
+# value that half its users override is worse than two honest declarations.
+[workspace.dependencies]
+crownos-config = { path = "crates/crownos-config", version = "0.2.0", default-features = false }
+crownshell     = { path = "crates/crownshell",     version = "0.3.0" }
+
+anyhow                 = "1.0.104"
+env_logger             = "0.11"
+log                    = "0.4"
+parley                 = "0.6"
+serde                  = { version = "1.0.228", features = ["derive"] }
+smithay-client-toolkit = { version = "0.19", features = ["calloop"] }
+tracing                = "0.1.44"
+vello                  = "0.9.0"
+xilem                  = "0.4.0"
+
+# Profiles live ONLY here. Cargo silently ignores [profile.*] in a non-root
+# member -- miss this and release binaries quietly lose LTO and stripping with
+# nothing failing.
+[profile.release]
+lto           = "thin"
+codegen-units = 1
+strip         = "symbols"
+
+[profile.dev]
+split-debuginfo = "unpacked"

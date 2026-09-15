@@ -1,12 +1,12 @@
 [package]
 name = "crownotify"
 version = "0.1.0"
-edition = "2024"
-authors = ["marvelxcodes <ramakrishnan0046@gmail.com>"]
-rust-version = "1.88"
-license = "MIT"
-repository = "https://github.com/Crown-OS/crownotify"
-homepage = "https://github.com/Crown-OS/crownotify"
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Notification daemon for CrownOS."
 keywords = ["crownos", "wayland", "notifications", "dbus", "layershell"]
 categories = ["gui", "os::linux-apis"]
@@ -14,20 +14,15 @@ readme = "README.md"
 documentation = "https://docs.rs/crownotify"
 
 [dependencies]
-crownshell = "0.3"
+crownshell = { workspace = true }
 
-anyhow = "1.0.104"
-log = "0.4"
-env_logger = "0.11"
+anyhow = { workspace = true }
+log = { workspace = true }
+env_logger = { workspace = true }
 
-vello = "0.9.0"
-parley = "0.6"
+vello = { workspace = true }
+parley = { workspace = true }
 calloop = "0.13"
 
 smol = "2.0.2"
 zbus = "5.16.0"
-
-[profile.release]
-lto = "thin"
-codegen-units = 1
-strip = "symbols"

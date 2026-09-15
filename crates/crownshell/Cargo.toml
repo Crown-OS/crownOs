@@ -1,31 +1,31 @@
 [package]
 name = "crownshell"
 version = "0.3.0"
-edition = "2024"
-rust-version = "1.88"
-authors = ["marvelxcodes <ramakrishnan0046@gmail.com>"]
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
 description = "A Rust framework for building Wayland layer shell surfaces with Vello 2D graphics."
-license = "MIT"
-repository = "https://github.com/Crown-OS/crownshell"
-homepage = "https://github.com/Crown-OS/crownshell"
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
 documentation = "https://docs.rs/crownshell"
 readme = "README.md"
 keywords = ["crownos", "wayland", "vello", "gui", "layershell"]
 categories = ["gui", "graphics", "rendering", "os::linux-apis"]
 
 [dependencies]
-anyhow = "1.0.104"
-log = "0.4"
+anyhow = { workspace = true }
+log = { workspace = true }
 
-smithay-client-toolkit = { version = "0.19", features = ["calloop"] }
+smithay-client-toolkit = { workspace = true, features = ["calloop"] }
 wayland-client = "0.31"
 wayland-backend = { version = "0.3", features = ["client_system"] }
 wayland-protocols = { version = "0.32", features = ["client", "staging"] }
 calloop = "0.13"
 calloop-wayland-source = "0.3"
 
-vello = "0.9.0"
-parley = "0.6"
+vello = { workspace = true }
+parley = { workspace = true }
 pollster = "0.4"
 bytemuck = { version = "1", features = ["derive"] }
 
@@ -33,9 +33,4 @@ bytemuck = { version = "1", features = ["derive"] }
 # consumer of crownshell link them.
 [dev-dependencies]
 chrono = "0.4.45"
-env_logger = "0.11"
-
-[profile.release]
-lto = "thin"
-codegen-units = 1
-strip = "symbols"
+env_logger = { workspace = true }

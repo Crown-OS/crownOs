@@ -1,16 +1,16 @@
 [package]
 name = "crownpositor"
 version = "0.1.0"
-edition = "2024"
-rust-version = "1.88"
-license = "MIT"
-authors = ["marvelxcodes <ramakrishnan0046@gmail.com>"]
-repository = "https://github.com/Crown-OS/crownpositor"
-homepage = "https://github.com/Crown-OS/crownpositor"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
 description = "Wayland compositor for CrownOS, built on Smithay."
 keywords = ["crownos", "wayland", "compositor", "smithay", "tiling"]
 categories = ["gui", "os::linux-apis"]
-readme = "../README.md"
+readme = "README.md"
 documentation = "https://docs.rs/crownpositor"
 
 [dependencies.smithay]
@@ -35,17 +35,17 @@ features = [
 ]
 
 [dependencies]
-config = { package = "crownpositor-config", path = "../config", version = "0.1.0" }
+config = { package = "crownpositor-config", path = "../crownpositor-config", version = "0.1.0" }
 crownos-config = { workspace = true }
 anyhow = { workspace = true }
-thiserror = { workspace = true }
-calloop = { workspace = true }
-parking_lot = { workspace = true }
-smithay-drm-extras = { workspace = true }
-tokio = { workspace = true }
+thiserror = "2.0.20"
+calloop = "0.14.4"
+parking_lot = "0.12.5"
+smithay-drm-extras = { version = "0.1.0", default-features = false }
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "time", "sync"] }
 tracing = { workspace = true }
-tracing-subscriber = { workspace = true }
-wayland-server = { workspace = true }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+wayland-server = "0.31.14"
 tiny-skia = "0.12.0"
 # XCursor theme lookup and file parsing, so `rendering::cursor` only has to
 # decide *which* shape to draw, not how to find or decode it.
