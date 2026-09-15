@@ -71,7 +71,11 @@ note "building the VM image (first run downloads a NixOS closure; later runs are
 
 # The VM's run script is named after the guest hostname. Glob for it rather than
 # hard-coding, so renaming the host in vm.nix cannot break this.
-VM_OUT="$(nix build --no-link --print-out-paths \
+# --refresh because nix caches the resolved revision of a github: flake ref.
+# Without it, the first run after someone pushes a change to crownOs-setup
+# fails with "does not provide attribute", which reads like a broken flake
+# rather than a stale cache.
+VM_OUT="$(nix build --refresh --no-link --print-out-paths \
   "${SETUP_FLAKE}#nixosConfigurations.crownos-vm.config.system.build.vm")"
 # No -type f: nixpkgs ships this as a symlink into the store, and -type f
 # silently excludes symlinks, which makes the glob find nothing.
