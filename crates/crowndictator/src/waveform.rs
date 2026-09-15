@@ -98,7 +98,11 @@ impl SurfaceHandler for Overlay {
         // ---- snapshot shared state --------------------------------------
         let (phase, since, wave_raw) = {
             let s = self.shared.lock().unwrap();
-            (s.phase, s.phase_since.elapsed().as_secs_f32(), wave_snapshot(&s))
+            (
+                s.phase,
+                s.phase_since.elapsed().as_secs_f32(),
+                wave_snapshot(&s),
+            )
         };
         // Auto-retract once the result flash has been shown.
         if matches!(phase, Phase::Success | Phase::Error) && since > RESULT_FLASH_SECS {

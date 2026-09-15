@@ -41,7 +41,10 @@ pub fn type_text(text: &str) -> Result<()> {
     }
     if run_with_stdin("wl-copy", &[], text).unwrap_or(false) {
         let _ = Command::new("notify-send")
-            .args(["Crown Dictator", "Typing tools unavailable — text copied to clipboard"])
+            .args([
+                "Crown Dictator",
+                "Typing tools unavailable — text copied to clipboard",
+            ])
             .status();
         return Ok(());
     }

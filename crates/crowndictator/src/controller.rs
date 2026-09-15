@@ -20,9 +20,9 @@
 //! * the backend preference goes to the ASR thread, which picks it up the next
 //!   time it loads the model — brought forward by unloading it now.
 
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc;
-use std::sync::Arc;
 use std::time::Duration;
 
 use calloop::channel::Sender as WakeSender;

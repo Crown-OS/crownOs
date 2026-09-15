@@ -9,17 +9,17 @@
 
 mod download;
 
+use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::mpsc::{Receiver, RecvTimeoutError, Sender};
-use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use anyhow::{Context, Result, anyhow};
 use ort::ep::CUDAExecutionProvider;
-use ort::session::builder::GraphOptimizationLevel;
-use ort::session::Session;
-use ort::value::{Tensor, ValueType};
 use ort::inputs;
+use ort::session::Session;
+use ort::session::builder::GraphOptimizationLevel;
+use ort::value::{Tensor, ValueType};
 
 /// Durations head of this TDT model predicts an index into [0,1,2,3,4],
 /// i.e. the argmax index *is* the frame step.
@@ -55,9 +55,7 @@ fn session_for(path: &std::path::Path, gpu: bool) -> Result<Session> {
         .map_err(oerr)?;
     if gpu {
         builder = builder
-            .with_execution_providers([CUDAExecutionProvider::default()
-                .build()
-                .error_on_failure()])
+            .with_execution_providers([CUDAExecutionProvider::default().build().error_on_failure()])
             .map_err(oerr)?;
     }
     builder.commit_from_file(path).map_err(oerr)
@@ -76,10 +74,13 @@ fn cuda_usable(probe_model: &std::path::Path) -> bool {
 }
 
 fn tensor_meta(sess: &Session, name: &str) -> Option<(ort::value::TensorElementType, Vec<i64>)> {
-    sess.inputs().iter().find(|o| o.name() == name).and_then(|o| match o.dtype() {
-        ValueType::Tensor { ty, shape, .. } => Some((*ty, shape.to_vec())),
-        _ => None,
-    })
+    sess.inputs()
+        .iter()
+        .find(|o| o.name() == name)
+        .and_then(|o| match o.dtype() {
+            ValueType::Tensor { ty, shape, .. } => Some((*ty, shape.to_vec())),
+            _ => None,
+        })
 }
 
 impl Engine {
@@ -114,8 +115,8 @@ impl Engine {
         let encoder = session_for(&paths.encoder, gpu)?;
         let dj = session_for(&paths.decoder_joint, gpu)?;
 
-        let (targets_ty, _) =
-            tensor_meta(&dj, "targets").ok_or_else(|| anyhow!("decoder_joint: no `targets` input"))?;
+        let (targets_ty, _) = tensor_meta(&dj, "targets")
+            .ok_or_else(|| anyhow!("decoder_joint: no `targets` input"))?;
         let (tlen_ty, _) = tensor_meta(&dj, "target_length")
             .ok_or_else(|| anyhow!("decoder_joint: no `target_length` input"))?;
         let state_shape = |name: &str| -> (usize, usize) {

@@ -26,7 +26,7 @@ mod state;
 mod wav;
 mod waveform;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use crownshell::{Anchor, KeyboardInteractivity, Layer, WindowConfig};
 use smithay_client_toolkit::compositor::Region;
 use smithay_client_toolkit::shell::WaylandSurface;

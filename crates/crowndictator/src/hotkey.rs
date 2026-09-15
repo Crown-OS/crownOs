@@ -292,7 +292,11 @@ impl Hotkeys {
         }
         log::info!(
             "hotkey: {} on {binding}",
-            if enabled { "listening" } else { "not listening" }
+            if enabled {
+                "listening"
+            } else {
+                "not listening"
+            }
         );
         chord.binding = binding;
         chord.enabled = enabled;
@@ -309,7 +313,9 @@ impl Hotkeys {
 /// /dev/input.
 fn is_keyboard(dev: &Device) -> bool {
     dev.supported_keys().is_some_and(|keys| {
-        keys.contains(EvKey::KEY_A) && keys.contains(EvKey::KEY_Z) && keys.contains(EvKey::KEY_SPACE)
+        keys.contains(EvKey::KEY_A)
+            && keys.contains(EvKey::KEY_Z)
+            && keys.contains(EvKey::KEY_SPACE)
     })
 }
 

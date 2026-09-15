@@ -76,42 +76,45 @@ pub fn start(shared: Shared, wanted: Option<&str>) -> Result<Recording> {
     let err_cb = |e| log::error!("audio: stream error: {e}");
     let stream_config: cpal::StreamConfig = config.clone().into();
 
-    let stream = match config.sample_format() {
-        cpal::SampleFormat::F32 => device.build_input_stream(
-            &stream_config,
-            move |data: &[f32], _| {
-                on_mono(&mut data.chunks(channels).map(|f| {
-                    f.iter().sum::<f32>() / channels as f32
-                }));
-            },
-            err_cb,
-            None,
-        )?,
-        cpal::SampleFormat::I16 => device.build_input_stream(
-            &stream_config,
-            move |data: &[i16], _| {
-                on_mono(&mut data.chunks(channels).map(|f| {
-                    f.iter().map(|&v| v as f32 / 32768.0).sum::<f32>() / channels as f32
-                }));
-            },
-            err_cb,
-            None,
-        )?,
-        cpal::SampleFormat::U16 => device.build_input_stream(
-            &stream_config,
-            move |data: &[u16], _| {
-                on_mono(&mut data.chunks(channels).map(|f| {
-                    f.iter()
-                        .map(|&v| (v as f32 - 32768.0) / 32768.0)
-                        .sum::<f32>()
-                        / channels as f32
-                }));
-            },
-            err_cb,
-            None,
-        )?,
-        fmt => return Err(anyhow!("unsupported sample format {fmt:?}")),
-    };
+    let stream =
+        match config.sample_format() {
+            cpal::SampleFormat::F32 => device.build_input_stream(
+                &stream_config,
+                move |data: &[f32], _| {
+                    on_mono(
+                        &mut data
+                            .chunks(channels)
+                            .map(|f| f.iter().sum::<f32>() / channels as f32),
+                    );
+                },
+                err_cb,
+                None,
+            )?,
+            cpal::SampleFormat::I16 => device.build_input_stream(
+                &stream_config,
+                move |data: &[i16], _| {
+                    on_mono(&mut data.chunks(channels).map(|f| {
+                        f.iter().map(|&v| v as f32 / 32768.0).sum::<f32>() / channels as f32
+                    }));
+                },
+                err_cb,
+                None,
+            )?,
+            cpal::SampleFormat::U16 => device.build_input_stream(
+                &stream_config,
+                move |data: &[u16], _| {
+                    on_mono(&mut data.chunks(channels).map(|f| {
+                        f.iter()
+                            .map(|&v| (v as f32 - 32768.0) / 32768.0)
+                            .sum::<f32>()
+                            / channels as f32
+                    }));
+                },
+                err_cb,
+                None,
+            )?,
+            fmt => return Err(anyhow!("unsupported sample format {fmt:?}")),
+        };
     stream.play().context("start input stream")?;
 
     Ok(Recording { stream, buf, rate })
@@ -142,8 +145,9 @@ fn open(host: &cpal::Host, wanted: Option<&str>) -> Result<cpal::Device> {
         Some(device) => Ok(device),
         None => {
             log::warn!("audio: '{wanted}' is not connected; using the default input device");
-            host.default_input_device()
-                .ok_or_else(|| anyhow!("'{wanted}' is not connected and there is no default input device"))
+            host.default_input_device().ok_or_else(|| {
+                anyhow!("'{wanted}' is not connected and there is no default input device")
+            })
         }
     }
 }
@@ -160,7 +164,11 @@ pub fn resample_to_16k(samples: &[f32], rate: u32) -> Vec<f32> {
 
     // Low-pass cutoff at the lower Nyquist, slightly under to reduce aliasing.
     let cutoff = (TARGET / rate as f64).min(1.0) * 0.92;
-    let half_taps = if ratio > 1.0 { (12.0 * ratio).ceil() as isize } else { 12 };
+    let half_taps = if ratio > 1.0 {
+        (12.0 * ratio).ceil() as isize
+    } else {
+        12
+    };
 
     for i in 0..out_len {
         let center = i as f64 * ratio;
@@ -180,13 +188,16 @@ pub fn resample_to_16k(samples: &[f32], rate: u32) -> Vec<f32> {
             // Hann window over the kernel extent.
             let w = 0.5
                 + 0.5
-                    * (std::f64::consts::PI * (k as f64 - center) / (half_taps as f64 + 1.0))
-                        .cos();
+                    * (std::f64::consts::PI * (k as f64 - center) / (half_taps as f64 + 1.0)).cos();
             let coeff = sinc * w * cutoff;
             sum += samples[k as usize] as f64 * coeff;
             wsum += coeff;
         }
-        out.push(if wsum.abs() > 1e-12 { (sum / wsum) as f32 } else { 0.0 });
+        out.push(if wsum.abs() > 1e-12 {
+            (sum / wsum) as f32
+        } else {
+            0.0
+        });
     }
     out
 }
