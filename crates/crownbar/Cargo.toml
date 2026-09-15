@@ -1,0 +1,31 @@
+[package]
+name = "crownbar"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+authors = ["marvelxcodes <ramakrishnan0046@gmail.com>"]
+repository = "https://github.com/Crown-OS/crownbar"
+homepage = "https://github.com/Crown-OS/crownbar"
+description = "Status bar for CrownOS."
+keywords = ["crownos", "wayland", "statusbar", "layershell", "desktop"]
+categories = ["gui", "os::linux-apis"]
+readme = "README.md"
+documentation = "https://docs.rs/crownbar"
+
+[dependencies]
+crownshell = "0.3"
+
+anyhow = "1.0.104"
+battery = "0.7.8"
+chrono = "0.4.45"
+log = "0.4"
+env_logger = "0.11"
+
+vello = "0.9.0"
+parley = "0.6"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
