@@ -4,10 +4,8 @@
 //! owns the local UI state and surfaces it as a smoothly-animated icon so
 //! the visual treatment is in place when the compositor protocol lands.
 
-use crate::{
-    animation::Spring,
-    widgets::{BarWidget, Icon, WidgetSlot},
-};
+use crate::widgets::{BarWidget, Icon, WidgetSlot};
+use crownshell::Spring;
 
 pub struct LayoutWidget {
     tiled: bool,

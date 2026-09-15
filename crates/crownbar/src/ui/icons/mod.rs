@@ -14,11 +14,7 @@ mod layout;
 mod volume;
 mod wifi;
 
-use vello::{
-    Scene,
-    kurbo::Rect,
-    peniko::Color,
-};
+use vello::{Scene, kurbo::Rect, peniko::Color};
 
 use crate::widgets::Icon;
 

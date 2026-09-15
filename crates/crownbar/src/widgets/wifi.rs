@@ -10,10 +10,10 @@ use std::fs;
 use std::path::PathBuf;
 
 use crate::{
-    animation::Spring,
     util::poll::PollGate,
     widgets::{BarWidget, Icon, WidgetSlot},
 };
+use crownshell::Spring;
 
 const POLL_PERIOD_TICKS: u32 = 3;
 

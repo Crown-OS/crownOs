@@ -1,4 +1,3 @@
-mod animation;
 mod bar_handler;
 mod config;
 mod theme;
@@ -12,9 +11,9 @@ use crownshell::{Anchor, KeyboardInteractivity, Layer, WindowConfig};
 use bar_handler::BarHandler;
 use config::{BAR_HEIGHT, BAR_NAMESPACE};
 use widgets::{
-    battery::BatteryWidget, bluetooth::BluetoothWidget, brightness::BrightnessWidget,
-    clock::ClockWidget, layout::LayoutWidget, volume::VolumeWidget, wifi::WifiWidget, BarWidget,
-    WidgetRegistry,
+    BarWidget, WidgetRegistry, battery::BatteryWidget, bluetooth::BluetoothWidget,
+    brightness::BrightnessWidget, clock::ClockWidget, layout::LayoutWidget, volume::VolumeWidget,
+    wifi::WifiWidget,
 };
 
 pub fn app() -> Result<()> {

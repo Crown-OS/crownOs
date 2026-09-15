@@ -4,9 +4,9 @@ mod text;
 
 use parley::{FontContext, LayoutContext};
 use vello::{
+    Scene,
     kurbo::{Affine, Rect},
     peniko::{Brush, Color, Fill},
-    Scene,
 };
 
 use crate::{
@@ -78,9 +78,14 @@ impl BarPainter {
             rt.bounds = None;
         }
 
-        place_slot(&measured, WidgetSlot::Left, registry, pill_y, pill_h, |_| {
-            THEME.bar_pad_x
-        });
+        place_slot(
+            &measured,
+            WidgetSlot::Left,
+            registry,
+            pill_y,
+            pill_h,
+            |_| THEME.bar_pad_x,
+        );
         place_slot(
             &measured,
             WidgetSlot::Center,
@@ -99,12 +104,7 @@ impl BarPainter {
         );
     }
 
-    pub fn build_scene(
-        &mut self,
-        scene: &mut Scene,
-        registry: &WidgetRegistry,
-        size: (u32, u32),
-    ) {
+    pub fn build_scene(&mut self, scene: &mut Scene, registry: &WidgetRegistry, size: (u32, u32)) {
         let width = size.0 as f32;
         let height = size.1 as f32;
 

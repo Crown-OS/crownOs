@@ -20,7 +20,9 @@ fn build_layout(
         parley::FontFamily::Generic(GenericFamily::SystemUi),
     )));
     builder.push_default(StyleProperty::FontSize(font_size));
-    builder.push_default(StyleProperty::LineHeight(parley::LineHeight::FontSizeRelative(1.2)));
+    builder.push_default(StyleProperty::LineHeight(
+        parley::LineHeight::FontSizeRelative(1.2),
+    ));
     let mut layout = builder.build(text);
     layout.break_all_lines(None);
     layout.align(None, Alignment::Start, AlignmentOptions::default());

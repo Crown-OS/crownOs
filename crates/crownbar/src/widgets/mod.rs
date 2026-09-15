@@ -6,7 +6,7 @@ pub mod layout;
 pub mod volume;
 pub mod wifi;
 
-use crate::animation::Spring;
+use crownshell::Spring;
 
 /// Where a widget anchors itself on the bar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -1,10 +1,7 @@
 use crownshell::{Scene, SurfaceCtx, SurfaceHandler};
 
-use crate::{
-    animation::Clock,
-    ui::BarPainter,
-    widgets::WidgetRegistry,
-};
+use crate::{ui::BarPainter, widgets::WidgetRegistry};
+use crownshell::Clock;
 
 pub struct BarHandler {
     widgets: WidgetRegistry,
