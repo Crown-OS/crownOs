@@ -41,22 +41,48 @@ path is the one to reach for if your distro is unusual:
 nix develop github:Crown-OS/crownOs-setup --command cargo build --workspace
 ```
 
-## Try it without installing anything
+## Try it
 
-`crownpositor` runs nested inside your current session, so you can look at
-CrownOS without logging out of anything:
+Three ways, costing progressively more and testing progressively more. Start at
+the top.
 
-```bash
-CROWN_BACKEND=winit cargo run -p crownpositor
-```
+### Nested — the daily loop
 
-To get the full desktop rather than a bare compositor, install the session and
-let it spawn the rest:
+Runs inside your current session, in a window. Cannot affect your machine.
 
 ```bash
 ./session/install.sh
 CROWN_BACKEND=winit crownos-session
 ```
+
+That is the whole desktop: compositor, bar, dock and notifications. It exercises
+layout, rendering, input and IPC — everything except the parts that only exist on
+real hardware.
+
+### A VM — before you trust it with a login
+
+```bash
+./contrib/run-vm.sh
+```
+
+Builds the workspace, boots a NixOS guest on virtio-gpu, and autologins into
+CrownOS. This is the tier that tests what nesting cannot: **seat acquisition,
+DRM/KMS mode setting, and the session launcher a display manager would use** —
+the three things that decide whether CrownOS works on real hardware.
+
+Your `target/` is mounted read-only in the guest, so a rebuild on the host is
+picked up by the next boot; nothing is installed into the image. Needs `nix`,
+and `/dev/kvm` if you want it to be fast rather than merely correct.
+
+### Real hardware
+
+```bash
+sudo ./session/install.sh --system
+```
+
+Then pick CrownOS at your display manager. Have a second TTY available the first
+time, and read
+[the compositor's notes](crates/crownpositor/README.md) on seats first.
 
 ## The crates
 
