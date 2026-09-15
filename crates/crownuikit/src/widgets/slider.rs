@@ -14,8 +14,8 @@ use xilem::masonry::core::{
     WidgetMut,
 };
 use xilem::masonry::kurbo::{Point, Rect, RoundedRect, Size};
-use xilem::masonry::peniko::color::palette;
 use xilem::masonry::peniko::Gradient;
+use xilem::masonry::peniko::color::palette;
 use xilem::masonry::util::fill;
 use xilem::masonry::vello::Scene;
 use xilem::{Affine, Color, Pod, ViewCtx};

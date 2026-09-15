@@ -8,7 +8,7 @@ use winit::error::EventLoopError;
 use xilem::masonry::properties::Padding;
 use xilem::masonry::properties::types::AsUnit;
 use xilem::style::Style;
-use xilem::view::{flex_col, flex_row, label, sized_box, CrossAxisAlignment, FlexSpacer};
+use xilem::view::{CrossAxisAlignment, FlexSpacer, flex_col, flex_row, label, sized_box};
 use xilem::{Color, EventLoop, WidgetView, WindowOptions, Xilem};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -62,12 +62,18 @@ fn sidebar_view(data: &mut AppState) -> impl WidgetView<AppState> + use<> {
         sidebar_brand("Untitled UI", icons::INFINITY, |_s: &mut AppState| ()),
         // Top nav group ---
         flex_col((
-            sidebar_item("Dashboard", icons::HOUSE, nav == Nav::Dashboard, |s: &mut AppState| {
-                s.nav = Nav::Dashboard
-            }),
-            sidebar_item("Orders", icons::SHOPPING_BAG, nav == Nav::Orders, |s: &mut AppState| {
-                s.nav = Nav::Orders
-            }),
+            sidebar_item(
+                "Dashboard",
+                icons::HOUSE,
+                nav == Nav::Dashboard,
+                |s: &mut AppState| s.nav = Nav::Dashboard,
+            ),
+            sidebar_item(
+                "Orders",
+                icons::SHOPPING_BAG,
+                nav == Nav::Orders,
+                |s: &mut AppState| s.nav = Nav::Orders,
+            ),
             sidebar_item(
                 "Customers",
                 icons::USERS,
@@ -109,18 +115,24 @@ fn sidebar_view(data: &mut AppState) -> impl WidgetView<AppState> + use<> {
         ),
         // Middle nav group ---
         flex_col((
-            sidebar_item("Wallet", icons::WALLET, nav == Nav::Wallet, |s: &mut AppState| {
-                s.nav = Nav::Wallet
-            }),
+            sidebar_item(
+                "Wallet",
+                icons::WALLET,
+                nav == Nav::Wallet,
+                |s: &mut AppState| s.nav = Nav::Wallet,
+            ),
             sidebar_item(
                 "Transfers",
                 icons::ARROW_LEFT_RIGHT,
                 nav == Nav::Transfers,
                 |s: &mut AppState| s.nav = Nav::Transfers,
             ),
-            sidebar_item("Cards", icons::CREDIT_CARD, nav == Nav::Cards, |s: &mut AppState| {
-                s.nav = Nav::Cards
-            }),
+            sidebar_item(
+                "Cards",
+                icons::CREDIT_CARD,
+                nav == Nav::Cards,
+                |s: &mut AppState| s.nav = Nav::Cards,
+            ),
         ))
         .gap(2.0.px()),
         sidebar_separator(),
@@ -138,9 +150,12 @@ fn sidebar_view(data: &mut AppState) -> impl WidgetView<AppState> + use<> {
                 nav == Nav::Billing,
                 |s: &mut AppState| s.nav = Nav::Billing,
             ),
-            sidebar_item("Upgrade to PRO", icons::ZAP, nav == Nav::Upgrade, |s: &mut AppState| {
-                s.nav = Nav::Upgrade
-            }),
+            sidebar_item(
+                "Upgrade to PRO",
+                icons::ZAP,
+                nav == Nav::Upgrade,
+                |s: &mut AppState| s.nav = Nav::Upgrade,
+            ),
             sidebar_item(
                 "Documentation",
                 icons::BOOK_OPEN,
@@ -158,9 +173,12 @@ fn sidebar_view(data: &mut AppState) -> impl WidgetView<AppState> + use<> {
                 nav == Nav::Support,
                 |s: &mut AppState| s.nav = Nav::Support,
             ),
-            sidebar_item("Settings", icons::SETTINGS, nav == Nav::Settings, |s: &mut AppState| {
-                s.nav = Nav::Settings
-            }),
+            sidebar_item(
+                "Settings",
+                icons::SETTINGS,
+                nav == Nav::Settings,
+                |s: &mut AppState| s.nav = Nav::Settings,
+            ),
         ))
         .gap(2.0.px()),
     ))
@@ -172,9 +190,15 @@ fn sidebar_view(data: &mut AppState) -> impl WidgetView<AppState> + use<> {
 
 fn widget_showcase(data: &mut AppState) -> impl WidgetView<AppState> + use<> {
     let sliders = flex_col((
-        slider(0.0, 100.0, data.slider_a, |s: &mut AppState, v| s.slider_a = v),
-        slider(0.0, 100.0, data.slider_b, |s: &mut AppState, v| s.slider_b = v),
-        slider(0.0, 100.0, data.slider_c, |s: &mut AppState, v| s.slider_c = v),
+        slider(0.0, 100.0, data.slider_a, |s: &mut AppState, v| {
+            s.slider_a = v
+        }),
+        slider(0.0, 100.0, data.slider_b, |s: &mut AppState, v| {
+            s.slider_b = v
+        }),
+        slider(0.0, 100.0, data.slider_c, |s: &mut AppState, v| {
+            s.slider_c = v
+        }),
     ))
     .gap(16.0.px())
     .cross_axis_alignment(CrossAxisAlignment::Center);

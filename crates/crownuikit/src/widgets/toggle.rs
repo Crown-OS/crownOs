@@ -13,8 +13,8 @@ use xilem::masonry::core::{
     RegisterCtx, TextEvent, Update, UpdateCtx, Widget, WidgetMut, WidgetPod,
 };
 use xilem::masonry::kurbo::{Point, RoundedRect, Size};
-use xilem::masonry::peniko::color::palette;
 use xilem::masonry::peniko::Gradient;
+use xilem::masonry::peniko::color::palette;
 use xilem::masonry::util::fill;
 use xilem::masonry::vello::Scene;
 use xilem::masonry::widgets::Label;

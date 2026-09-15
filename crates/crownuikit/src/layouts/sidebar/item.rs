@@ -24,8 +24,8 @@ use xilem::masonry::core::{
     WidgetPod,
 };
 use xilem::masonry::kurbo::{Rect, Size};
-use xilem::masonry::peniko::color::palette;
 use xilem::masonry::peniko::Color;
+use xilem::masonry::peniko::color::palette;
 use xilem::masonry::properties::ContentColor;
 use xilem::masonry::util::{fill, stroke};
 use xilem::masonry::vello::Scene;
@@ -34,7 +34,7 @@ use xilem::{Pod, ViewCtx};
 
 use crate::animation::{Clock, Spring};
 use crate::util::lerp_color;
-use crate::widgets::icon::{paint_shapes, parse_shapes, IconShape};
+use crate::widgets::icon::{IconShape, paint_shapes, parse_shapes};
 
 // --- MARK: Metrics ---
 const ROW_HEIGHT: f64 = 36.0;
@@ -332,8 +332,7 @@ impl Widget for SidebarItem {
             H_PADDING
         };
         let label_max_w = (width - label_x - trailing_reserve).max(0.0);
-        let label_bc =
-            BoxConstraints::new(Size::ZERO, Size::new(label_max_w, total_h));
+        let label_bc = BoxConstraints::new(Size::ZERO, Size::new(label_max_w, total_h));
         let label_size = ctx.run_layout(&mut self.label, &label_bc);
         let label_y = (total_h - label_size.height) / 2.0;
         ctx.place_child(&mut self.label, (label_x, label_y).into());
@@ -350,8 +349,8 @@ impl Widget for SidebarItem {
         // pill sits fully inside the widget's own bounds (otherwise the
         // outer half of the stroke leaks 0.5px past the row and shows up
         // as an aliased halo).
-        let bg_rect = Rect::new(0.5, 0.5, size.width - 0.5, size.height - 0.5)
-            .to_rounded_rect(ROW_RADIUS);
+        let bg_rect =
+            Rect::new(0.5, 0.5, size.width - 0.5, size.height - 0.5).to_rounded_rect(ROW_RADIUS);
 
         // Brand row is a static header — no bg animation.
         if !matches!(self.kind, SidebarItemKind::Brand) {
@@ -404,7 +403,12 @@ impl Widget for SidebarItem {
             paint_shapes(
                 scene,
                 shapes,
-                Rect::new(icon_x, icon_y, icon_x + TRAILING_SIZE, icon_y + TRAILING_SIZE),
+                Rect::new(
+                    icon_x,
+                    icon_y,
+                    icon_x + TRAILING_SIZE,
+                    icon_y + TRAILING_SIZE,
+                ),
                 IDLE_ICON,
                 1.6,
             );

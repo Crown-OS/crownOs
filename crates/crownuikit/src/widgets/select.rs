@@ -52,8 +52,8 @@ use xilem::masonry::widgets::Label;
 use xilem::{Pod, ViewCtx};
 
 use crate::animation::{Clock, Spring, SpringProfile};
-use crate::config::{theme, PopoverColors};
-use crate::widgets::icon::{paint_shapes, parse_shapes, IconShape};
+use crate::config::{PopoverColors, theme};
+use crate::widgets::icon::{IconShape, paint_shapes, parse_shapes};
 
 // --- MARK: Metrics ---
 const TRIGGER_WIDTH: f64 = 200.0;
@@ -98,11 +98,7 @@ pub enum PopupAction {
 // --- MARK: Layout helpers ---
 
 fn header_h(has_header: bool) -> f64 {
-    if has_header {
-        HEADER_HEIGHT
-    } else {
-        0.0
-    }
+    if has_header { HEADER_HEIGHT } else { 0.0 }
 }
 
 fn panel_size(has_header: bool, n_options: usize) -> Size {
@@ -348,10 +344,7 @@ impl Widget for SelectPopup {
 
         // If we're closing and the fade has settled, submit the dismissal
         // signal + self-remove from the layer stack.
-        if self.closing
-            && self.alive_progress.at_rest()
-            && self.alive_progress.target == 0.0
-        {
+        if self.closing && self.alive_progress.at_rest() && self.alive_progress.target == 0.0 {
             ctx.submit_action::<PopupAction>(PopupAction::Dismissed);
             let id = ctx.widget_id();
             ctx.remove_layer(id);
@@ -476,7 +469,12 @@ impl Widget for SelectPopup {
             paint_shapes(
                 scene,
                 &self.check_shapes,
-                Rect::new(check_x, check_top, check_x + CHECK_SIZE, check_top + CHECK_SIZE),
+                Rect::new(
+                    check_x,
+                    check_top,
+                    check_x + CHECK_SIZE,
+                    check_top + CHECK_SIZE,
+                ),
                 colors.text,
                 2.0,
             );

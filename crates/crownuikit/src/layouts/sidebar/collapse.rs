@@ -56,9 +56,7 @@ impl SidebarCollapseWidget {
         this.ctx.request_anim_frame();
     }
 
-    pub fn child_mut<'t>(
-        this: &'t mut WidgetMut<'_, Self>,
-    ) -> WidgetMut<'t, dyn Widget> {
+    pub fn child_mut<'t>(this: &'t mut WidgetMut<'_, Self>) -> WidgetMut<'t, dyn Widget> {
         this.ctx.get_mut(&mut this.widget.child)
     }
 }
@@ -104,8 +102,10 @@ impl Widget for SidebarCollapseWidget {
         // Always give the child its natural size — a hidden child stays
         // laid out at full height so we don't lose our target dimensions
         // mid-animation.
-        let child_bc =
-            BoxConstraints::new(Size::new(bc.min().width, 0.0), Size::new(bc.max().width, f64::INFINITY));
+        let child_bc = BoxConstraints::new(
+            Size::new(bc.min().width, 0.0),
+            Size::new(bc.max().width, f64::INFINITY),
+        );
         let child_size = ctx.run_layout(&mut self.child, &child_bc);
         ctx.place_child(&mut self.child, Point::ORIGIN);
 

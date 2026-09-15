@@ -10,7 +10,9 @@ use xilem::masonry::core::{
     AccessCtx, BoxConstraints, ChildrenIds, LayoutCtx, NoAction, PaintCtx, PropertiesMut,
     PropertiesRef, RegisterCtx, Widget, WidgetMut,
 };
-use xilem::masonry::kurbo::{Affine, BezPath, Circle, Line, Point, Rect, RoundedRect, Size, Stroke};
+use xilem::masonry::kurbo::{
+    Affine, BezPath, Circle, Line, Point, Rect, RoundedRect, Size, Stroke,
+};
 use xilem::masonry::peniko::Color;
 use xilem::masonry::vello::Scene;
 use xilem::{Pod, ViewCtx};
@@ -92,7 +94,9 @@ fn parse_element(tag: &str, out: &mut Vec<IconShape>) {
             let y = attr_f64(tag, "y").unwrap_or(0.0);
             let w = attr_f64(tag, "width").unwrap_or(0.0);
             let h = attr_f64(tag, "height").unwrap_or(0.0);
-            let rx = attr_f64(tag, "rx").or_else(|| attr_f64(tag, "ry")).unwrap_or(0.0);
+            let rx = attr_f64(tag, "rx")
+                .or_else(|| attr_f64(tag, "ry"))
+                .unwrap_or(0.0);
             let rect = Rect::new(x, y, x + w, y + h).to_rounded_rect(rx);
             out.push(IconShape::Rect(rect));
         }
@@ -252,7 +256,9 @@ where
     type ViewState = ();
 
     fn build(&self, ctx: &mut ViewCtx, _: &mut State) -> (Self::Element, Self::ViewState) {
-        let widget = Icon::new(self.svg).with_size(self.size).with_color(self.color);
+        let widget = Icon::new(self.svg)
+            .with_size(self.size)
+            .with_color(self.color);
         (ctx.create_pod(widget), ())
     }
 

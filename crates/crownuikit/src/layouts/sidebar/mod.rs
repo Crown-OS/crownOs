@@ -68,10 +68,10 @@
 mod collapse;
 mod item;
 
-pub use collapse::{sidebar_collapse, SidebarCollapse, SidebarCollapseWidget};
+pub use collapse::{SidebarCollapse, SidebarCollapseWidget, sidebar_collapse};
 pub use item::{
-    sidebar_brand, sidebar_item, sidebar_subitem, SidebarActivated, SidebarItem, SidebarItemKind,
-    SidebarItemView,
+    SidebarActivated, SidebarItem, SidebarItemKind, SidebarItemView, sidebar_brand, sidebar_item,
+    sidebar_subitem,
 };
 
 use blinc_icons::icons;
@@ -83,8 +83,8 @@ use xilem::masonry::core::{
 };
 use xilem::masonry::kurbo::{Rect, Size};
 use xilem::masonry::peniko::Color;
-use xilem::masonry::properties::types::AsUnit;
 use xilem::masonry::properties::Padding;
+use xilem::masonry::properties::types::AsUnit;
 use xilem::masonry::util::fill;
 use xilem::masonry::vello::Scene;
 use xilem::style::Style;
