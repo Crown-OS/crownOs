@@ -13,7 +13,7 @@ use xilem::masonry::core::{
     PropertiesMut, PropertiesRef, RegisterCtx, ScrollDelta, TextEvent, Update, UpdateCtx, Widget,
     WidgetMut,
 };
-use xilem::masonry::kurbo::{Point, Rect, RoundedRect, Size};
+use xilem::masonry::kurbo::{Point, Rect, Size};
 use xilem::masonry::peniko::Gradient;
 use xilem::masonry::peniko::color::palette;
 use xilem::masonry::util::fill;
