@@ -47,6 +47,8 @@ crate::section! {
         /// usable GPU, so this only matters on a machine that has one and wants
         /// it left alone.
         pub dictation_gpu as DictationGpu: bool = true,
+
+        pub keyboard_repeat_rate as KeyboardRepeatRate:u16 = 200
     }
 }
 

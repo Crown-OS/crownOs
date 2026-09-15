@@ -42,7 +42,7 @@ use notify::{Event, EventKind, RecommendedWatcher, RecursiveMode, Watcher};
 use serde::de::DeserializeOwned;
 
 use crate::util::{hash_bytes, last_written, path_for};
-use crate::{Key, config_dir};
+use crate::{config_dir, Key};
 
 type Callback = Arc<dyn Fn(Vec<u8>) + Send + Sync>;
 

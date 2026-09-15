@@ -14,15 +14,27 @@
 
 use serde::{Deserialize, Serialize};
 
+/// How a workspace arranges the windows on it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
-pub enum LayoutMode {
-    /// dwm/xmonad: one master area plus a stack.
+pub enum WorkspaceMode {
+    /// The compositor owns every window's geometry.
     #[default]
-    MasterStack,
-    /// niri/PaperWM: an infinite horizontal ribbon of columns.
-    ScrollingColumns,
-    /// Nothing is tiled; every window keeps its own rect.
+    Tiling,
+    /// Windows keep the size and position they were given, and wear a titlebar.
     Floating,
+}
+
+impl WorkspaceMode {
+    pub fn is_floating(self) -> bool {
+        matches!(self, Self::Floating)
+    }
+
+    pub fn toggled(self) -> Self {
+        match self {
+            Self::Tiling => Self::Floating,
+            Self::Floating => Self::Tiling,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
@@ -44,14 +56,6 @@ pub enum OutputTransform {
 /// Deliberately not a [`Keybind`](crate::Keybind): the compositor's actions are
 /// its own vocabulary, and the chord spellings it accepts (`"Super+Shift+Q"`)
 /// are a superset of what the settings panel's single-shortcut fields need.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Binding {
-    /// `"Super+Q"`, `"Super+Shift+1"`, `"Super"` for a modifier-only chord.
-    pub keys: String,
-    /// `"close-window"`, `"spawn foot"`, `"workspace +1"`.
-    pub action: String,
-}
-
 /// Matched at a window's first buffer commit, the earliest point `app_id`,
 /// `title` and the size hints exist.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -104,45 +108,24 @@ pub struct OutputSetting {
     pub vrr: Option<bool>,
     /// Overrides the global default for workspaces created on this output.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub layout: Option<LayoutMode>,
+    pub layout: Option<WorkspaceMode>,
 }
 
 crate::section! {
     pub struct Compositor in "compositor", keys CompositorKey {
-        /// How new workspaces arrange their windows.
-        pub layout as Layout: LayoutMode = LayoutMode::MasterStack,
-
-        /// Whether moving the pointer over a window focuses it.
+        pub layout as Layout: WorkspaceMode = WorkspaceMode::Tiling,
         pub focus_follows_mouse as FocusFollowsMouse: bool = false,
-
-        /// Empty means "use the built-in defaults", not "nothing bound" —
-        /// otherwise a fresh install would have no way to quit. Write one
-        /// `keys: "None"` row to genuinely bind nothing.
-        pub keybinds as Keybinds: Vec<Binding> = Vec::new(),
 
         pub window_rules as WindowRules: Vec<WindowRule> = Vec::new(),
         pub outputs as Outputs: Vec<OutputSetting> = Vec::new(),
-
-        /// Command lines spawned once the session is up — bar, dock, wallpaper,
-        /// notification daemon. Each entry is one command; the compositor execs
-        /// it directly rather than through a shell, so quoting is handled by
-        /// `crownpositor`'s `config::startup::split_argv` and there is no
-        /// globbing or variable expansion. Blank entries are dropped.
+        /// Defaults to the CrownOS desktop. An empty list meant a first run
+        /// came up as a bare compositor -- no bar, no dock, no notifications.
+        /// A missing binary is logged by crownpositor's `spawn` and skipped,
+        /// so naming a component that is not installed costs a warning rather
+        /// than a broken session. Set `startup: []` for a bare compositor.
         ///
-        /// Defaults to the CrownOS desktop. An empty list used to be the
-        /// default, which meant a first run came up as a bare compositor with
-        /// no bar, no dock and no notifications — correct behaviour for a
-        /// generic compositor, but CrownOS is not one, and "it started and the
-        /// screen is empty" was the first thing every new user saw.
-        ///
-        /// A missing binary is logged by `crownpositor`'s `spawn` and skipped,
-        /// so listing a component that is not installed costs a warning line
-        /// rather than a broken session. Set `startup: []` explicitly for a
-        /// bare compositor.
-        ///
-        /// `crowndictator` is deliberately absent: it downloads 700 MB–2.5 GB
-        /// of model weights on first run, which is not something a default
-        /// should do to someone.
+        /// crowndictator is excluded on purpose: it downloads 700 MB-2.5 GB of
+        /// model weights on first run.
         pub startup as Startup: Vec<String> = vec![
             "crownbar".to_owned(),
             "crowndock".to_owned(),
@@ -158,7 +141,7 @@ mod tests {
     #[test]
     fn the_documented_file_shape_round_trips() {
         let sample = r#"(
-            layout: ScrollingColumns,
+            layout: Floating,
             keybinds: [
                 (keys: "Super+Q", action: "close-window"),
             ],
@@ -169,6 +152,10 @@ mod tests {
             outputs: [
                 (name: "eDP-1", scale: 2.0, position: (0, 0)),
             ],
+            startup: [
+                "crownbar",
+                "swaybg -i /usr/share/backgrounds/crown.png",
+            ],
         )"#;
 
         // Parsed the way `load` does, so what this asserts is what a hand-edited
@@ -177,13 +164,12 @@ mod tests {
             .from_str(sample)
             .expect("the documented shape must parse");
 
-        assert_eq!(parsed.layout, LayoutMode::ScrollingColumns);
+        assert_eq!(parsed.layout, WorkspaceMode::Floating);
         // Omitted fields fall back rather than failing the whole section.
         assert_eq!(
             parsed.focus_follows_mouse,
             Compositor::default().focus_follows_mouse
         );
-        assert_eq!(parsed.keybinds.len(), 1);
         assert_eq!(parsed.window_rules.len(), 2);
         assert_eq!(parsed.window_rules[0].app_id.as_deref(), Some("Nautilus"));
         assert_eq!(parsed.window_rules[0].floating, Some(true));

@@ -217,7 +217,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::{Appearance, appearance, display};
+    use crate::schema::{appearance, display, Appearance};
 
     #[derive(Default)]
     struct AppState {

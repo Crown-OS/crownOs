@@ -6,7 +6,7 @@ pub mod layout;
 pub mod volume;
 pub mod wifi;
 
-use crownshell::Spring;
+use crate::animation::Spring;
 
 /// Where a widget anchors itself on the bar.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -27,7 +27,6 @@ pub enum WidgetSlot {
 #[derive(Debug, Clone, Copy)]
 pub enum Icon {
     None,
-    Clock { hours: f32, minutes: f32 },
     Wifi { strength: f32 },
     Bluetooth { on: f32 },
     Volume { level: f32, muted: f32 },

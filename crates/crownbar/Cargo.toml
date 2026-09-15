@@ -15,12 +15,20 @@ documentation = "https://docs.rs/crownbar"
 
 [dependencies]
 crownshell = { workspace = true }
+# Added by 69a8823: the bar now reads `appearance` live rather than hardcoding
+# its own geometry, so bar_height and the accent colour finally do something.
+crownos-config = { workspace = true }
 
 anyhow = { workspace = true }
-battery = "0.7.8"
-chrono = "0.4.45"
+battery = "0.7.8"    # crownbar is the only consumer, so it stays literal
+chrono = "0.4.45"    # likewise -- crownshell moved its copy to dev-deps
 log = { workspace = true }
 env_logger = { workspace = true }
 
 vello = { workspace = true }
 parley = { workspace = true }
+
+# `tracing` and `bluer` are deliberately absent. Both were declared and never
+# called -- bluer especially, since src/widgets/bluetooth.rs documents reading
+# sysfs precisely so the bar does not depend on BlueZ or D-Bus. Verified against
+# this revision of the source, not an older one.

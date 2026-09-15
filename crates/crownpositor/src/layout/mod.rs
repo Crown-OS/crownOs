@@ -17,7 +17,7 @@ use std::fmt::Debug;
 
 use smithay::utils::{Logical, Point, Rectangle, Size};
 
-use config::LayoutMode;
+use config::WorkspaceMode;
 
 use crate::utils::id::WindowId;
 
@@ -33,12 +33,23 @@ pub enum LayoutKind {
     Floating,
 }
 
-impl From<LayoutMode> for LayoutKind {
-    fn from(mode: LayoutMode) -> Self {
+/// `WorkspaceMode` says *whether* a workspace tiles; `LayoutKind` says *how*.
+///
+/// The config used to name the algorithm directly (`MasterStack`,
+/// `ScrollingColumns`, `Floating`). Since 3ccc02d it asks the narrower
+/// question, which is the better one for a settings panel to put in front of a
+/// user -- but it means the config can no longer pick between the two tiling
+/// algorithms, so `Tiling` resolves to the previous default and
+/// `ScrollingColumns` is reached at runtime with `toggle-layout-mode`.
+///
+/// Restoring a config-level choice of algorithm is a schema question, not a
+/// compositor one; until it is answered nothing here is lost, because both
+/// algorithms remain live.
+impl From<WorkspaceMode> for LayoutKind {
+    fn from(mode: WorkspaceMode) -> Self {
         match mode {
-            LayoutMode::MasterStack => Self::MasterStack,
-            LayoutMode::ScrollingColumns => Self::ScrollingColumns,
-            LayoutMode::Floating => Self::Floating,
+            WorkspaceMode::Tiling => Self::MasterStack,
+            WorkspaceMode::Floating => Self::Floating,
         }
     }
 }

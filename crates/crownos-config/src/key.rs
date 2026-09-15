@@ -204,7 +204,7 @@ macro_rules! section {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::schema::{Appearance, AppearanceKey, appearance};
+    use crate::schema::{appearance, Appearance, AppearanceKey};
 
     /// The `= value` on each field is what `Default` uses.
     #[test]
@@ -275,7 +275,14 @@ mod tests {
                 "gaps_outer",
                 "border_width",
                 "border_radius",
-                "animations"
+                "animations",
+                "titlebar_height",
+                "snap",
+                "appmenu",
+                "blur",
+                "blur_passes",
+                "blur_size",
+                "blur_noise"
             ]
         );
         assert_eq!(

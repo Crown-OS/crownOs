@@ -3,7 +3,8 @@ pub mod startup;
 pub mod system;
 
 pub use crownos_config::schema::{
-    AnimationProfile, Binding, Compositor, LayoutMode, OutputSetting, OutputTransform, WindowRule,
+    AnimationProfile, Binding, Compositor, Keybinds, OutputSetting, OutputTransform, WindowRule,
+    WorkspaceMode,
 };
 pub use rules::{ResolvedRule, WindowRules};
 pub use startup::split_argv;
@@ -12,6 +13,7 @@ pub use system::System;
 #[derive(Debug)]
 pub struct Config {
     pub compositor: Compositor,
+    pub keybinds: Keybinds,
     pub system: System,
     pub rules: WindowRules,
 
@@ -20,7 +22,7 @@ pub struct Config {
     pub border_width: i32,
     pub border_radius: i32,
     pub focus_follows_mouse: bool,
-    pub default_layout: LayoutMode,
+    pub default_layout: WorkspaceMode,
     pub animation: AnimationProfile,
 }
 
@@ -50,6 +52,10 @@ impl Config {
     }
 
     pub fn compile(compositor: Compositor, system: System) -> Self {
+        Self::compile_with(compositor, system, crownos_config::load(Keybinds::SECTION))
+    }
+
+    pub fn compile_with(compositor: Compositor, system: System, keybinds: Keybinds) -> Self {
         let rules = WindowRules::compile(&compositor.window_rules);
         Self {
             gaps_inner: system.gaps_inner as i32,
@@ -60,6 +66,7 @@ impl Config {
             focus_follows_mouse: compositor.focus_follows_mouse,
             default_layout: compositor.layout,
             rules,
+            keybinds,
             compositor,
             system,
         }

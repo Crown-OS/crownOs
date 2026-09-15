@@ -12,7 +12,6 @@ pub enum AccentColor {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum AnimationProfile {
-    /// Snap straight to the target; no springs stepped, no redraws scheduled.
     None,
     Snappy,
     #[default]
@@ -22,13 +21,11 @@ pub enum AnimationProfile {
 
 crate::section! {
     pub struct Appearance in "appearance", keys AppearanceKey {
-        // System
         pub dark_mode as DarkMode: bool = true,
         pub accent as Accent: AccentColor = AccentColor::Purple,
         pub transparency as Transparency: f64 = 0.0,
         pub wallpaper as Wallpaper: String = String::new(),
 
-        // Bar
         pub bar_height as BarHeight: u32 = 32,
 
         // Windows. Applied by the compositor, but the same kind of setting as
@@ -41,5 +38,14 @@ crate::section! {
         pub border_width as BorderWidth: u16 = 2,
         pub border_radius as BorderRadius: u16 = 8,
         pub animations as Animations: AnimationProfile = AnimationProfile::Standard,
+
+        pub titlebar_height as TitlebarHeight: u16 = 36,
+        pub snap as Snap: bool = true,
+        pub appmenu as Appmenu: bool = true,
+
+        pub blur as Blur: bool = true,
+        pub blur_passes as BlurPasses: u16 = 3,
+        pub blur_size as BlurSize: f64 = 1.5,
+        pub blur_noise as BlurNoise: f64 = 0.01,
     }
 }

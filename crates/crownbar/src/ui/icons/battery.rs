@@ -6,7 +6,14 @@ use vello::{
 
 use super::fade;
 
-pub(super) fn draw(scene: &mut Scene, b: Rect, fg: Color, pct: f32, charging: f32, saver: f32) {
+pub(super) fn draw(
+    scene: &mut Scene,
+    b: Rect,
+    fg: Color,
+    pct: f32,
+    charging: f32,
+    saver: f32,
+) {
     // Body: rounded rect, with a tiny terminal nub on the right.
     let pad_x = b.width() * 0.08;
     let pad_y = b.height() * 0.25;

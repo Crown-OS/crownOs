@@ -144,7 +144,7 @@ impl State {
     /// Window rules are deliberately not retro-applied: a window floated by hand
     /// must not be re-tiled because an unrelated rule was edited.
     pub fn apply_config(&mut self, new: Config) {
-        self.input.bindings = Bindings::from_config(&new.compositor);
+        self.input.bindings = Bindings::from_config(&new.keybinds);
 
         self.shell.set_global_layout(new.default_layout.into());
         self.shell.set_gaps(Gaps {

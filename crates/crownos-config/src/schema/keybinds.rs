@@ -13,34 +13,52 @@
 //! shortcut has to work from *outside*. It reads this file live, so rebinding
 //! takes effect without a restart or a re-login.
 
+use serde::{Deserialize, Serialize};
+
 use crate::keybind::Keybind;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct Binding {
+    pub keys: String,
+    pub action: String,
+}
 
 crate::section! {
     pub struct Keybinds in "keybinds", keys KeybindsKey {
-        /// Shows and hides the launchpad.
-        ///
-        /// One shortcut for both directions rather than two: the launchpad is
-        /// a place you go and come back from, and a separate "close" chord
-        /// would be one more thing to bind and one more thing to forget.
-        ///
-        /// Modifier-only by default — see [`Keybind::SUPER_CTRL`]. Clearing it
-        /// to [`Keybind::NONE`] leaves the launchpad reachable only by whatever
-        /// else opens it, which is a legitimate choice and not an error.
-        pub launcher as Launcher: Keybind = Keybind::SUPER_CTRL,
+        pub launcher as Launcher: Keybind = Keybind::SUPER_SPACE,
+        pub dictation as Dictation: Keybind = Keybind::SUPER_CTRL,
+        pub custom_keybinds as CustomKeybinds: Vec<Binding> = Vec::new(),
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::keybind::Mods;
+    use crate::keybind::{KeyCode, Mods};
 
     #[test]
-    fn the_launchpad_opens_on_super_ctrl_by_default() {
+    fn the_launchpad_opens_on_super_space_by_default() {
         let keybinds = Keybinds::default();
 
         assert_eq!(
             keybinds.launcher.mods,
+            Mods {
+                meta: true,
+                ctrl: false,
+                alt: false,
+                shift: false
+            }
+        );
+        assert_eq!(keybinds.launcher.key, Some(KeyCode::Space));
+    }
+
+    /// Dictation took over the modifier-only chord the launchpad used to hold.
+    #[test]
+    fn dictation_holds_the_modifier_only_chord() {
+        let keybinds = Keybinds::default();
+
+        assert_eq!(
+            keybinds.dictation.mods,
             Mods {
                 meta: true,
                 ctrl: true,
@@ -49,7 +67,7 @@ mod tests {
             }
         );
         assert_eq!(
-            keybinds.launcher.key, None,
+            keybinds.dictation.key, None,
             "a modifier-only chord cannot collide with an application's own bindings"
         );
     }
@@ -57,11 +75,16 @@ mod tests {
     /// The written form is what lands in the file and what the settings panel
     /// shows, and modifiers print in one fixed order however they were typed.
     #[test]
-    fn the_default_is_written_super_ctrl_whichever_way_it_is_spelled() {
-        assert_eq!(Keybinds::default().launcher.to_string(), "Super+Ctrl");
+    fn the_default_is_written_in_one_order_whichever_way_it_is_spelled() {
+        assert_eq!(Keybinds::default().launcher.to_string(), "Super+Space");
+        assert_eq!(
+            "Super+Space".parse::<Keybind>().unwrap(),
+            Keybinds::default().launcher
+        );
+        assert_eq!(Keybinds::default().dictation.to_string(), "Super+Ctrl");
         assert_eq!(
             "Ctrl+Super".parse::<Keybind>().unwrap(),
-            Keybinds::default().launcher
+            Keybinds::default().dictation
         );
     }
 
@@ -71,7 +94,7 @@ mod tests {
             .expect("serialise keybinds section");
 
         assert!(
-            text.contains("launcher: \"Super+Ctrl\""),
+            text.contains("launcher: \"Super+Space\""),
             "the shortcut should be hand-editable, got:\n{text}"
         );
         assert_eq!(
@@ -85,7 +108,10 @@ mod tests {
     #[test]
     fn an_unbound_launcher_survives_the_file() {
         let cleared = Keybinds {
+            dictation: Keybind::NONE,
             launcher: Keybind::NONE,
+
+            custom_keybinds: Vec::new(),
         };
         let text = ron::ser::to_string_pretty(&cleared, Default::default()).expect("serialise");
 

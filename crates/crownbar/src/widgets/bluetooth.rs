@@ -9,10 +9,10 @@
 use std::fs;
 
 use crate::{
+    animation::Spring,
     util::poll::PollGate,
     widgets::{BarWidget, Icon, WidgetSlot},
 };
-use crownshell::Spring;
 
 const POLL_PERIOD_TICKS: u32 = 3;
 
@@ -73,7 +73,8 @@ impl BarWidget for BluetoothWidget {
         // privileges the bar isn't asking for. The next sysfs poll will
         // re-sync if the real state never moved.
         self.on = !self.on;
-        self.on_anim.set_target(if self.on { 1.0 } else { 0.0 });
+        self.on_anim
+            .set_target(if self.on { 1.0 } else { 0.0 });
         true
     }
 
@@ -106,7 +107,8 @@ fn rfkill_entries() -> impl Iterator<Item = (String, u32)> {
         let Some(ty) = read_trim(&path.join("type")) else {
             continue;
         };
-        let Some(state) = read_trim(&path.join("state")).and_then(|s| s.parse::<u32>().ok()) else {
+        let Some(state) = read_trim(&path.join("state")).and_then(|s| s.parse::<u32>().ok())
+        else {
             continue;
         };
         out.push((ty, state));

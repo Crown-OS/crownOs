@@ -6,10 +6,10 @@
 use std::process::Command;
 
 use crate::{
+    animation::Spring,
     util::poll::PollGate,
     widgets::{BarWidget, Icon, WidgetSlot},
 };
-use crownshell::Spring;
 
 const POLL_PERIOD_TICKS: u32 = 2;
 
@@ -56,8 +56,7 @@ impl VolumeWidget {
         let changed = (next_level - self.level.target).abs() > 0.005 || next_muted != self.muted;
         self.muted = next_muted;
         self.level.set_target(next_level);
-        self.muted_anim
-            .set_target(if next_muted { 1.0 } else { 0.0 });
+        self.muted_anim.set_target(if next_muted { 1.0 } else { 0.0 });
         changed
     }
 }
@@ -180,10 +179,13 @@ fn read_pactl() -> Option<VolReading> {
     let vol_str = String::from_utf8(vol_out.stdout).ok()?;
     let mute_str = String::from_utf8(mute_out.stdout).ok()?;
 
-    let volume = vol_str.split('/').map(str::trim).find_map(|tok| {
-        let pct = tok.strip_suffix('%')?;
-        pct.trim().parse::<u8>().ok()
-    })?;
+    let volume = vol_str
+        .split('/')
+        .map(str::trim)
+        .find_map(|tok| {
+            let pct = tok.strip_suffix('%')?;
+            pct.trim().parse::<u8>().ok()
+        })?;
     let muted = mute_str.contains("yes");
 
     Some(VolReading { volume, muted })
