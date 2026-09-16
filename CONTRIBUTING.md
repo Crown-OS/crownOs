@@ -17,6 +17,17 @@ mentioning any of those, they predate the merge and are wrong.
 See [the README](README.md) for running it, and
 [docs/architecture.md](docs/architecture.md) for how the crates fit together.
 
+## Talk to us
+
+[**Slack**](https://join.slack.com/t/crownosworkspace/shared_invite/zt-49zwa428j-ZfgY5WtOk4Yv2~VLuEl7mg)
+— for anything quicker than an issue: a build that will not start, a question
+about which crate something belongs in, or telling us the setup instructions did
+not work on your distribution. That last one is genuinely useful; CI covers Arch,
+Fedora and Debian, and everything else is unverified.
+
+For anything worth finding again later — a bug, a proposal, a decision — open an
+issue instead. Chat is not searchable six months from now.
+
 ## What is worth knowing before you change something
 
 **The config schema is a contract.** `crownos-config` is read by the compositor,
